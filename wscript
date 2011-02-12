@@ -17,5 +17,5 @@ def configure(conf):
 
 def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib')
-  obj.target = 'bignum'
-  obj.source = 'bignum.cc'
+  obj.target = 'bigint'
+  obj.source = 'bigint.cc'

@@ -1,11 +1,11 @@
 {
-    "name" : "bignum",
+    "name" : "bigint",
     "version" : "0.0.1",
-    "description" : "Arithmetic on big integers and floats using libgmp",
+    "description" : "Arithmetic on big integers using libgmp",
     "main" : "./index.js",
     "repository" : {
         "type" : "git",
-        "url" : "http://github.com/substack/node-bignum.git"
+        "url" : "http://github.com/substack/node-bigint.git"
     },
     "keywords": [
         "gmp",
@@ -13,9 +13,9 @@
         "big",
         "bignum",
         "bigint",
-        "bigfloat",
         "integer",
-        "float"
+        "arithmetic",
+        "precision"
     ],
     "author" : {
         "name" : "James Halliday",
