@@ -1,0 +1,36 @@
+{
+    "name" : "bignum",
+    "version" : "0.0.1",
+    "description" : "Arithmetic on big integers and floats using libgmp",
+    "main" : "./index.js",
+    "repository" : {
+        "type" : "git",
+        "url" : "http://github.com/substack/node-bignum.git"
+    },
+    "keywords": [
+        "gmp",
+        "libgmp",
+        "big",
+        "bignum",
+        "bigint",
+        "bigfloat",
+        "integer",
+        "float"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "dependencies" : {
+        "node-ffi" : ">=0.2.0"
+    },
+    "devDependencies" : {
+        "expresso" : ">=0.6.0"
+    },
+    "scripts" : {
+        "test" : "expresso"
+    },
+    "license" : "MIT/X11",
+    "engine" : ["node >=0.2.0"]
+}

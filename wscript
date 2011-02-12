@@ -19,9 +19,3 @@ def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib')
   obj.target = 'bignum'
   obj.source = 'bignum.cc'
-
-def shutdown():
-  if exists("build/default/libbignum.dylib") and not exists("libbignum.dylib"):
-    symlink("build/default/libbignum.dylib", "libbignum.dylib")
-  if exists("build/default/libbignum.so") and not exists("libbignum.so"):
-    symlink("build/default/libbignum.so", "libbignum.so")
