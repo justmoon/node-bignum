@@ -41,3 +41,13 @@ exports.multiply = function () {
         '-1230000000000000000000000000000'
     );
 };
+
+exports.add = function () {
+    assert.eql(bigint(3).add(4).toString(), '7');
+    assert.eql(bigint(3).add('4').toString(), '7');
+    assert.eql(bigint(3).add(bigint(4)).toString(), '7');
+    
+    assert.eql(bigint(5).add(-7).toString(), '-2');
+    assert.eql(bigint(5).add('-7').toString(), '-2');
+    assert.eql(bigint(5).add(bigint('-7')).toString(), '-2');
+};

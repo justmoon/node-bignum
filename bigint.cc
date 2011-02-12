@@ -37,9 +37,33 @@ extern "C" char * toString (uint32_t index, uint32_t base) {
     return mpz_get_str(0, base, *bigints[index]);
 }
 
-extern "C" uint32_t mul (uint32_t i, uint32_t j) {
+extern "C" uint32_t badd (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_add(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t bsub (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_add(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t bmul (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
     mpz_mul(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t bdiv (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_div(*res, *bigints[i], *bigints[j]);
     
     bigints[bigindex] = res;
     return bigindex++;

@@ -4,7 +4,10 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     destroy : [ 'uint32', [ 'uint32' ] ],
     toString : [ 'string', [ 'uint32', 'uint32' ] ],
     fromString : [ 'uint32', [ 'string', 'uint32' ] ],
-    mul : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    badd : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    bsub : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    bmul : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    bdiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
 });
 
 module.exports = BigInt;
@@ -60,15 +63,17 @@ BigInt.prototype.toString = function (base) {
     return bigint.toString(this.id, base || 10);
 };
 
-BigInt.prototype.mul = function (num) {
-    if (num instanceof BigInt) {
-        return BigInt.fromId(bigint.mul(this.id, num.id));
-    }
-    else {
-        var x = BigInt(num);
-        var id = bigint.mul(this.id, x.id);
-        var res = BigInt.fromId(id);
-        x.destroy();
-        return res;
-    }
-};
+[ 'add', 'sub', 'mul', 'div' ].forEach(function (op) {
+    BigInt.prototype[op] = function (num) {
+        if (num instanceof BigInt) {
+            return BigInt.fromId(bigint['b'+op](this.id, num.id));
+        }
+        else {
+            var x = BigInt(num);
+            var id = bigint['b'+op](this.id, x.id);
+            var res = BigInt.fromId(id);
+            x.destroy();
+            return res;
+        }
+    };
+});
