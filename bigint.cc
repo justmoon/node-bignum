@@ -36,3 +36,11 @@ extern "C" uint32_t destroy (uint32_t index) {
 extern "C" char * toString (uint32_t index, uint32_t base) {
     return mpz_get_str(0, base, *bigints[index]);
 }
+
+extern "C" uint32_t mul (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_mul(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
