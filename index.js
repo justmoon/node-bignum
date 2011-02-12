@@ -10,15 +10,22 @@ module.exports = BigInt;
 
 function BigInt (num, base) {
     if (!(this instanceof BigInt)) return new BigInt(num, base);
+    if (typeof num !== 'string') num = num.toString();
     
-    if (typeof num === 'number') {
-        this.id = bigint.fromString(num.toString(), base);
+    if (num.match(/e\+/)) { // positive exponent
+        var pow = Math.floor(Math.log(num) / Math.log(10));
+        var n = (pow / Math.pow(10, pow))
+            .toString().replace(/0?\./g,'');
+        
+        for (var i = n.length; i < pow; i++) n += '0';
+        
+        this.id = bigint.fromString(n, base || 10);
     }
-    else if (typeof num === 'string') {
-        this.id = bigint.fromString(num, base || 10);
+    else if (num.match(/e\-/)) { // negative exponent
+        // ...
     }
     else {
-        this.id = bigint.create();
+        this.id = bigint.fromString(num, base || 10);
     }
 }
 
