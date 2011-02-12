@@ -51,3 +51,7 @@ BigInt.prototype.toString = function (base) {
 BigInt.prototype.destroy = function (base) {
     bigint.destroy(this.id);
 };
+
+BigInt.prototype.mul = function () {
+    return this;
+};

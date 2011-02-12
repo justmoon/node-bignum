@@ -21,3 +21,23 @@ exports.create = function () {
     
     assert.eql(bigint('1.23e-45').toString(), '0');
 };
+
+exports.multiply = function () {
+    assert.eql(bigint(3).mul(4).toString(), '12');
+    assert.eql(bigint(3).mul('4').toString(), '12');
+    assert.eql(bigint(3).mul(bigint(4)).toString(), '12');
+    
+    assert.eql(bigint(5).mul(-7).toString(), '-35');
+    assert.eql(bigint(5).mul('-7').toString(), '-35');
+    assert.eql(bigint(5).mul(bigint('-7')).toString(), '-35');
+    
+    assert.eql(
+        bigint('10000000000000000000000000000').mul(123).toString(),
+        '1230000000000000000000000000000'
+    );
+    
+    assert.eql(
+        bigint('10000000000000000000000000000').mul(-123).toString(),
+        '-1230000000000000000000000000000'
+    );
+};
