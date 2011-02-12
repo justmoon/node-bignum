@@ -10,5 +10,6 @@ exports.create = function () {
         '55555555555555555555555555'
     );
     
-    assert.eql(parseInt(bigint('1e+100').toString(), 10), 1e+100);
+    assert.eql(Number(bigint('1e+100').toString()), 1e+100);
+    assert.eql(Number(bigint('1.23e+45').toString()), 1.23e+45);
 };

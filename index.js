@@ -13,13 +13,12 @@ function BigInt (num, base) {
     if (typeof num !== 'string') num = num.toString();
     
     if (num.match(/e\+/)) { // positive exponent
-        var pow = Math.floor(Math.log(num) / Math.log(10));
-        var n = (pow / Math.pow(10, pow))
-            .toString().replace(/0?\./g,'');
-        
+        var pow = Math.ceil(Math.log(num) / Math.log(2));
+        var n = (num / Math.pow(2, pow))
+            .toString(2).replace(/0?\./g,'');
         for (var i = n.length; i < pow; i++) n += '0';
         
-        this.id = bigint.fromString(n, base || 10);
+        this.id = bigint.fromString(n, 2);
     }
     else if (num.match(/e\-/)) { // negative exponent
         // ...
