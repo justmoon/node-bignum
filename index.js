@@ -10,18 +10,30 @@ module.exports = BigInt;
 
 function BigInt (num, base) {
     if (!(this instanceof BigInt)) return new BigInt(num, base);
-    if (typeof num !== 'string') num = num.toString();
+    if (typeof num !== 'string') num = num.toString(base || 10);
     
     if (num.match(/e\+/)) { // positive exponent
-        var pow = Math.ceil(Math.log(num) / Math.log(2));
-        var n = (num / Math.pow(2, pow))
-            .toString(2).replace(/0?\./g,'');
-        for (var i = n.length; i < pow; i++) n += '0';
-        
-        this.id = bigint.fromString(n, 2);
+        if (!Number(num).toString().match(/e\+/)) {
+            this.id = bigint.fromString(
+                Math.floor(Number(num)).toString(), 10
+            );
+        }
+        else {
+            var pow = Math.ceil(Math.log(num) / Math.log(2));
+            var n = (num / Math.pow(2, pow)).toString(2)
+                .replace(/^0/,'');
+            var i = n.length - n.indexOf('.');
+            n = n.replace(/\./,'');
+            
+            for (; i <= pow; i++) n += '0';
+            this.id = bigint.fromString(n, 2);
+        }
     }
     else if (num.match(/e\-/)) { // negative exponent
-        // ...
+        this.id = bigint.fromString(
+            Math.floor(Number(num)).toString(),
+            base || 10
+        );
     }
     else {
         this.id = bigint.fromString(num, base || 10);

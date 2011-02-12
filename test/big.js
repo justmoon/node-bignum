@@ -12,4 +12,12 @@ exports.create = function () {
     
     assert.eql(Number(bigint('1e+100').toString()), 1e+100);
     assert.eql(Number(bigint('1.23e+45').toString()), 1.23e+45);
+    for (var i = 0; i < 10; i++) {
+        assert.eql(
+            bigint('1.23456e+' + i).toString(),
+            Math.floor(1.23456 * Math.pow(10,i))
+        );
+    }
+    
+    assert.eql(bigint('1.23e-45').toString(), '0');
 };
