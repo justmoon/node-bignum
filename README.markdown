@@ -80,7 +80,7 @@ pow(n)
 
 Return a new `bigint` with the instance value raised to the `n`th power.
 
-powm(m, n)
+powm(n, m)
 ----------
 
 Return a new `bigint` with the instance value raised to the `n`th power modulo
