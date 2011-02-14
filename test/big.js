@@ -190,8 +190,27 @@ exports.neg = function () {
     );
 };
 
-exports.neg = function () {
+exports.mod = function () {
+    for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            if (!isNaN(i % j)) {
+                var ks = (i % j).toString();
+                assert.eql(bigint(i).mod(j).toString(), ks);
+                assert.eql(bigint(i).mod(js).toString(), ks);
+                assert.eql(bigint(i).mod(bigint(j)).toString(), ks);
+            }
+        }
+    }
     
+    assert.eql(
+        bigint('486541542410442549118519277483401413')
+            .mod('1802185856709793916115771381388554')
+            .toString()
+        ,
+        '1753546955507985683376775889880387'
+    );
 };
 
 if (process.argv[1] === __filename) {

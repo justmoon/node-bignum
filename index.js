@@ -87,17 +87,17 @@ BigInt.prototype.toString = function (base) {
             if (num >= 0) {
                 return BigInt.fromId(bigint['u'+op](this.id, num));
             }
-            else if (op === 'mul' || op === 'div') {
-                var x = new BigInt(num);
-                var res = BigInt.fromId(bigint['b'+op](this.id, x.id));
-                x.destroy();
-                return res;
-            }
             else if (op === 'add') {
                 return BigInt.fromId(bigint.usub(this.id, -num));
             }
             else if (op === 'sub') {
                 return BigInt.fromId(bigint.uadd(this.id, -num));
+            }
+            else {
+                var x = new BigInt(num);
+                var res = BigInt.fromId(bigint['b'+op](this.id, x.id));
+                x.destroy();
+                return res;
             }
         }
         else if (typeof num === 'string') {
