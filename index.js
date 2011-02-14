@@ -79,9 +79,9 @@ BigInt.prototype.toString = function (base) {
                 return BigInt.fromId(bigint['u'+op](this.id, num));
             }
             else if (op === 'mul' || op === 'div') {
-                var pos = BigInt.fromId(bigint['u'+op](this.id, -num));
-                var res = BigInt.fromId(bigint.bneg(pos.id));
-                pos.destroy();
+                var x = new BigInt(num);
+                var res = BigInt.fromId(bigint['b'+op](this.id, x.id));
+                x.destroy();
                 return res;
             }
             else if (op === 'add') {
