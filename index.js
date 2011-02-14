@@ -72,8 +72,20 @@ BigInt.prototype.toString = function (base) {
         if (num instanceof BigInt) {
             return BigInt.fromId(bigint['b'+op](this.id, num.id));
         }
-        else {
+        else if (typeof num === 'number') {
+            if (num >= 0) {
+                return BigInt.fromId(bigint['u'+op](this.id, num));
+            }
+            else {
+                return BigInt.fromId(bigint['s'+op](this.id, num));
+            }
+        }
+        else if (typeof num === 'string') {
             return BigInt.fromId(bigint['u'+op](this.id, num));
+        }
+        else {
+            throw new TypeError('Unspecified operation for type '
+                + (typeof num) + ' for ' + op);
         }
     };
 });

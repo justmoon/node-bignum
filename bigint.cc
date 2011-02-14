@@ -108,3 +108,21 @@ extern "C" uint32_t udiv (uint32_t i, uint64_t x) {
     bigints[bigindex] = res;
     return bigindex++;
 }
+
+extern "C" uint32_t babs (uint32_t i) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_abs(*res, *bigints[i]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t bneg (uint32_t i) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_neg(*res, *bigints[i]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
