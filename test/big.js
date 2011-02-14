@@ -213,6 +213,16 @@ exports.mod = function () {
     );
 };
 
+exports.powm = function () {
+    assert.eql(
+        bigint('624387628734576238746587435')
+            .powm(2732, '457676874367586')
+            .toString()
+        ,
+        '335581885073251'
+    );
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {

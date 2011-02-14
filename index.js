@@ -131,14 +131,14 @@ BigInt.prototype.powm = function (num, mod) {
     }
     else if (num instanceof BigInt) {
         var x = new BigInt(mod);
-        var res = BigInt.fromId(bigint.bpow(this.id, num.id, x.id));
+        var res = BigInt.fromId(bigint.bpowm(this.id, num.id, x.id));
         x.destroy();
         return res;
     }
     else {
         var x = new BigInt(num);
         var y = new BigInt(mod);
-        var res = BigInt.fromId(bigint.bpow(this.id, x.id, y.id));
+        var res = BigInt.fromId(bigint.bpowm(this.id, x.id, y.id));
         x.destroy();
         y.destroy();
         return res;
