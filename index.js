@@ -23,6 +23,8 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     bpowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
     upowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    
+    brand0 : [ 'uint32', [ 'uint32' ] ],
 });
 
 module.exports = BigInt;
@@ -76,6 +78,10 @@ BigInt.prototype.inspect = function () {
 
 BigInt.prototype.toString = function (base) {
     return bigint.toString(this.id, base || 10);
+};
+
+BigInt.prototype.toNumber = function () {
+    return parseInt(this.toString(), 10);
 };
 
 [ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
@@ -157,6 +163,25 @@ BigInt.prototype.pow = function (num) {
     else {
         var x = parseInt(num.toString(), 10);
         return BigInt.prototype.pow.call(this, x);
+    }
+};
+
+BigInt.prototype.rand = function (to) {
+    if (to === undefined) {
+        if (this.toString() === '1') {
+            return new BigInt(0);
+        }
+        else {
+            return BigInt.fromId(bigint.brand0(this.id));
+        }
+    }
+    else {
+        var x = this.sub(to);
+        var y = BigInt.fromId(bigint.brand0(x.id));
+        var res = y.add(to);
+        x.destroy();
+        y.destroy();
+        return res;
     }
 };
 

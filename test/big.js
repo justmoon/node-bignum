@@ -253,6 +253,20 @@ exports.pow = function () {
     );
 };
 
+exports.rand = function () {
+    for (var i = 1; i < 1000; i++) {
+        var x = bigint(i).rand().toNumber();
+        assert.ok(0 <= x  && x < i);
+        
+        var y = bigint(i).rand(i + 10).toNumber();
+console.dir([ i, y ]);
+        assert.ok(i <= y && y < i + 10);
+        
+        var z = bigint.rand(i, i + 10).toNumber();
+        assert.ok(i <= z && z < i + 10);
+    }
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {

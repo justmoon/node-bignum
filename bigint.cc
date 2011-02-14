@@ -9,6 +9,7 @@
 
 static std::map<uint32_t, mpz_t *> bigints;
 static uint32_t bigindex = 0;
+static gmp_randstate_t * randstate = NULL;
 
 extern "C" uint32_t create () {
     mpz_t *bigi = (mpz_t *) malloc(sizeof(mpz_t));
@@ -176,6 +177,19 @@ extern "C" uint32_t uupow (uint32_t x, uint32_t y) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
     mpz_init(*res);
     mpz_ui_pow_ui(*res, (unsigned long int) x, (unsigned long int) y);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t brand0 (uint32_t i) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    if (randstate == NULL) {
+        randstate = (gmp_randstate_t *) malloc(sizeof(gmp_randstate_t));
+        gmp_randinit_default(*randstate);
+    }
+    mpz_urandomm(*res, *randstate, *bigints[i]);
     
     bigints[bigindex] = res;
     return bigindex++;
