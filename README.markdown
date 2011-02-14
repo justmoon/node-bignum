@@ -26,6 +26,14 @@ example
 methods
 =======
 
+For all of the instance methods below except for toString you can write either
+
+    bigint.method(x, y, z)
+
+or if x is a `bigint` instance``
+
+    x.method(y, z)
+
 bigint(n, base=10)
 ------------------
 
@@ -34,54 +42,54 @@ another `bigint`.
 
 If you pass in a string you can set the base that string is encoded in.
 
-destroy()
----------
+.destroy()
+----------
 
 Destroy a bigint. This module is using node-ffi so I can't hook onto the
 GC easily. You only need to call this if you're creating bigints in a loop.
 
-toString(base=10)
------------------
+.toString(base=10)
+------------------
 
 Print out the `bigint` instance in the requested base as a string.
 
-add(n)
-------
+.add(n)
+-------
 
 Return a new `bigint` containing the instance value plus `n`.
 
-sub(n)
-------
+.sub(n)
+-------
 
 Return a new `bigint` containing the instance value minus `n`.
 
-mul(n)
-------
+.mul(n)
+-------
 
 Return a new `bigint` containing the instance value multiplied by `n`.
 
-div(n)
-------
+.div(n)
+-------
 
 Return a new `bigint` containing the instance value integrally divided by `n`.
 
-abs()
------
+.abs()
+------
 
 Return a new `bigint` with the absolute value of the instance.
 
-neg()
------
+.neg()
+------
 
 Return a new `bigint` with the negative of the instance value.
 
-pow(n)
-------
+.pow(n)
+-------
 
 Return a new `bigint` with the instance value raised to the `n`th power.
 
-powm(n, m)
-----------
+.powm(n, m)
+-----------
 
 Return a new `bigint` with the instance value raised to the `n`th power modulo
 `m`.

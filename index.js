@@ -159,3 +159,19 @@ BigInt.prototype.pow = function (num) {
         return BigInt.prototype.pow.call(this, x);
     }
 };
+
+Object.keys(BigInt.prototype).forEach(function (name) {
+    if (name === 'inspect' || name === 'toString') return;
+    
+    BigInt[name] = function (num) {
+        var args = [].slice.call(arguments, 1);
+        
+        if (num instanceof BigInt) {
+            return num[name].apply(num, args);
+        }
+        else {
+            var bigi = new BigInt(num);
+            return bigi[name].apply(bigi, args);
+        }
+    };
+});
