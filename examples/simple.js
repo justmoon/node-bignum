@@ -5,4 +5,3 @@ var b = bigint('782910138827292261791972728324982')
     .div(8)
 ;
 console.log(b);
-console.log(b.toString());

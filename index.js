@@ -120,3 +120,27 @@ BigInt.prototype.abs = function () {
 BigInt.prototype.neg = function () {
     return BigInt.fromId(bigint.bneg(this.id));
 };
+
+BigInt.prototype.powm = function (num, mod) {
+    if (num instanceof BigInt && mod instanceof BigInt) {
+        return BigInt.fromId(bigint.bpowm(this.id, num.id, mod.id));
+    }
+    else if (mod instanceof BigInt) {
+        var res = BigInt.fromId(bigint.upowm(this.id, num, mod.id));
+        return res;
+    }
+    else if (num instanceof BigInt) {
+        var x = new BigInt(mod);
+        var res = BigInt.fromId(bigint.bpow(this.id, num.id, x.id));
+        x.destroy();
+        return res;
+    }
+    else {
+        var x = new BigInt(num);
+        var y = new BigInt(mod);
+        var res = BigInt.fromId(bigint.bpow(this.id, x.id, y.id));
+        x.destroy();
+        y.destroy();
+        return res;
+    }
+};

@@ -16,12 +16,10 @@ simple.js
         .div(8)
     ;
     console.log(b);
-    console.log(b.toString());
 
 ***
     $ node simple.js
     <BigInt 75067108192986261319312244199576>
-    75067108192986261319312244199576
 
 methods
 =======
