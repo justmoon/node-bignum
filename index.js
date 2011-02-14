@@ -125,11 +125,11 @@ BigInt.prototype.powm = function (num, mod) {
     if (num instanceof BigInt && mod instanceof BigInt) {
         return BigInt.fromId(bigint.bpowm(this.id, num.id, mod.id));
     }
-    else if (mod instanceof BigInt) {
+    else if (num >= 0 && mod instanceof BigInt) {
         var res = BigInt.fromId(bigint.upowm(this.id, num, mod.id));
         return res;
     }
-    else if (num instanceof BigInt) {
+    else if (num instanceof BigInt && mod >= 0) {
         var x = new BigInt(mod);
         var res = BigInt.fromId(bigint.bpowm(this.id, num.id, x.id));
         x.destroy();
@@ -147,10 +147,12 @@ BigInt.prototype.powm = function (num, mod) {
 
 BigInt.prototype.pow = function (num) {
     if (typeof num === 'number') {
-        return num >= 0
-            ? BigInt.fromId(bigint.upow(this.id, num))
-            : BigInt.prototype.powm.call(this, num, this)
-        ;
+        if (num >= 0) {
+            return BigInt.fromId(bigint.upow(this.id, num));
+        }
+        else {
+            return BigInt.prototype.powm.call(this, num, this);
+        }
     }
     else {
         var x = parseInt(num.toString(), 10);
