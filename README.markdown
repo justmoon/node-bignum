@@ -3,11 +3,13 @@ bigint
 
 Arbitrary precision integral arithmetic for node.js!
 
-examples
-========
+This library wraps around [libgmp](http://gmplib.org/)'s
+[integer functions](http://gmplib.org/manual/Integer-Functions.html#Integer-Functions)
+to perform infinite-precision arithmetic using
+[node-ffi](https://github.com/rbranson/node-ffi).
 
-simple.js
----------
+example
+=======
 
     var bigint = require('bigint');
 
@@ -24,10 +26,12 @@ simple.js
 methods
 =======
 
-bigint(integer or string, base=10)
-----------------------------------
+bigint(n, base=10)
+------------------
 
-Create a new bigint from an integer or string.
+Create a new bigint from `n` and a base. `n` can be a string, integer, or
+another `bigint`.
+
 If you pass in a string you can set the base that string is encoded in.
 
 destroy()
@@ -41,27 +45,25 @@ toString(base=10)
 
 Print out the `bigint` instance in the requested base as a string.
 
-add(integer or string or bigint)
---------------------------------
+add(n)
+------
 
-Return a new `bigint` containing the instance value plus the supplied value.
+Return a new `bigint` containing the instance value plus `n`.
 
-sub(integer or string or bigint)
---------------------------------
+sub(n)
+------
 
-Return a new `bigint` containing the instance value minus the supplied value.
+Return a new `bigint` containing the instance value minus `n`.
 
-mul(integer or string or bigint)
---------------------------------
+mul(n)
+------
 
-Return a new `bigint` containing the instance value multiplied by the supplied
-value.
+Return a new `bigint` containing the instance value multiplied by `n`.
 
-div(integer or string or bigint)
---------------------------------
+div(n)
+------
 
-Return a new `bigint` containing the instance value divided by the supplied
-value.
+Return a new `bigint` containing the instance value integrally divided by `n`.
 
 abs()
 -----
@@ -72,3 +74,14 @@ neg()
 -----
 
 Return a new `bigint` with the negative of the instance value.
+
+pow(n)
+------
+
+Return a new `bigint` with the instance value raised to the `n`th power.
+
+powm(m, n)
+----------
+
+Return a new `bigint` with the instance value raised to the `n`th power modulo
+`m`.
