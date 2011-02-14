@@ -49,7 +49,7 @@ extern "C" uint32_t badd (uint32_t i, uint32_t j) {
 extern "C" uint32_t bsub (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
     mpz_init(*res);
-    mpz_add(*res, *bigints[i], *bigints[j]);
+    mpz_sub(*res, *bigints[i], *bigints[j]);
     
     bigints[bigindex] = res;
     return bigindex++;
