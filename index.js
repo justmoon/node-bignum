@@ -8,10 +8,12 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     bsub : [ 'uint32', [ 'uint32', 'uint32' ] ],
     bmul : [ 'uint32', [ 'uint32', 'uint32' ] ],
     bdiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    uadd : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    usub : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    umul : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    udiv : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    uadd : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    usub : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    umul : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    udiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    babs : [ 'uint32', [ 'uint32' ] ],
+    bneg : [ 'uint32', [ 'uint32' ] ],
 });
 
 module.exports = BigInt;
@@ -77,11 +79,17 @@ BigInt.prototype.toString = function (base) {
                 return BigInt.fromId(bigint['u'+op](this.id, num));
             }
             else {
-                return BigInt.fromId(bigint['s'+op](this.id, num));
+                var pos = BigInt.fromId(bigint['u'+op](this.id, -num));
+                var res = BigInt.fromId(bigint.bneg(pos));
+                pos.destroy();
+                return res;
             }
         }
         else if (typeof num === 'string') {
-            return BigInt.fromId(bigint['u'+op](this.id, num));
+            var x = new BigInt(num);
+            var res = BigInt.fromId(bigint['u'+op](this.id, x));
+            x.destroy();
+            return res;
         }
         else {
             throw new TypeError('Unspecified operation for type '
