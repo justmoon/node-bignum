@@ -39,6 +39,7 @@ extern "C" char * toString (uint32_t index, uint32_t base) {
 
 extern "C" uint32_t badd (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
     mpz_add(*res, *bigints[i], *bigints[j]);
     
     bigints[bigindex] = res;
@@ -47,6 +48,7 @@ extern "C" uint32_t badd (uint32_t i, uint32_t j) {
 
 extern "C" uint32_t bsub (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
     mpz_add(*res, *bigints[i], *bigints[j]);
     
     bigints[bigindex] = res;
@@ -55,6 +57,7 @@ extern "C" uint32_t bsub (uint32_t i, uint32_t j) {
 
 extern "C" uint32_t bmul (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
     mpz_mul(*res, *bigints[i], *bigints[j]);
     
     bigints[bigindex] = res;
@@ -63,7 +66,44 @@ extern "C" uint32_t bmul (uint32_t i, uint32_t j) {
 
 extern "C" uint32_t bdiv (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
     mpz_div(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t uadd (uint32_t i, uint64_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_add_ui(*res, *bigints[i], (unsigned long int) x);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t usub (uint32_t i, uint64_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_sub_ui(*res, *bigints[i], (unsigned long int) x);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t umul (uint32_t i, uint64_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_mul_ui(*res, *bigints[i], (unsigned long int) x);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t udiv (uint32_t i, uint64_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_div_ui(*res, *bigints[i], (unsigned long int) x);
     
     bigints[bigindex] = res;
     return bigindex++;

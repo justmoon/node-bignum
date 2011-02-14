@@ -51,3 +51,10 @@ exports.add = function () {
     assert.eql(bigint(5).add('-7').toString(), '-2');
     assert.eql(bigint(5).add(bigint('-7')).toString(), '-2');
 };
+
+if (process.argv[1] === __filename) {
+    assert.eql = assert.deepEqual;
+    Object.keys(exports).forEach(function (ex) {
+        exports[ex]();
+    });
+}
