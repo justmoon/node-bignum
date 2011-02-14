@@ -144,3 +144,21 @@ BigInt.prototype.powm = function (num, mod) {
         return res;
     }
 };
+
+BigInt.prototype.pow = function (num) {
+    if (num instanceof BigInt) {
+        var x = num.add(1).id;
+        var res = BigInt.fromId(bigint.bpowm(this.id, num.id, x.id));
+        x.destroy();
+        return res;
+    }
+    else if (typeof num === 'number' && num >= 0) {
+        return BigInt.fromId(bigint.upow(this.id, num));
+    }
+    else {
+        var x = new BigInt(num);
+        var res = BigInt.prototype.pow.call(this, x);
+        x.destroy();
+        return res;
+    }
+};
