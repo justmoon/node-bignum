@@ -4,16 +4,25 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     destroy : [ 'uint32', [ 'uint32' ] ],
     toString : [ 'string', [ 'uint32', 'uint32' ] ],
     fromString : [ 'uint32', [ 'string', 'uint32' ] ],
+    
     badd : [ 'uint32', [ 'uint32', 'uint32' ] ],
     bsub : [ 'uint32', [ 'uint32', 'uint32' ] ],
     bmul : [ 'uint32', [ 'uint32', 'uint32' ] ],
     bdiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    uadd : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    usub : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    umul : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    udiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    
+    uadd : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    usub : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    umul : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    udiv : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    
     babs : [ 'uint32', [ 'uint32' ] ],
     bneg : [ 'uint32', [ 'uint32' ] ],
+    
+    bmod : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    umod : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    bpowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
+    upowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
+    upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
 });
 
 module.exports = BigInt;
@@ -69,7 +78,7 @@ BigInt.prototype.toString = function (base) {
     return bigint.toString(this.id, base || 10);
 };
 
-[ 'add', 'sub', 'mul', 'div' ].forEach(function (op) {
+[ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
     BigInt.prototype[op] = function (num) {
         if (num instanceof BigInt) {
             return BigInt.fromId(bigint['b'+op](this.id, num.id));

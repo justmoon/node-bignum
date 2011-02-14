@@ -126,3 +126,57 @@ extern "C" uint32_t bneg (uint32_t i) {
     bigints[bigindex] = res;
     return bigindex++;
 }
+
+extern "C" uint32_t bmod (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_mod(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t umod (uint32_t i, uint64_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_mod_ui(*res, *bigints[i], (unsigned long int) x);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t bpowm (uint32_t i, uint32_t j, uint32_t k) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_powm(*res, *bigints[i], *bigints[j], *bigints[k]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t upowm (uint32_t i, uint32_t x, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_powm_ui(*res, *bigints[i], (unsigned long int) x, *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t upow (uint32_t i, uint32_t x) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_pow_ui(*res, *bigints[i], (unsigned long int) x);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" uint32_t uupow (uint32_t x, uint32_t y) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_ui_pow_ui(*res, (unsigned long int) x, (unsigned long int) y);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
