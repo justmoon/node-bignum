@@ -31,6 +31,7 @@ exports.add = function () {
             assert.eql(bigint(i).add(j).toString(), ks);
             assert.eql(bigint(i).add(js).toString(), ks);
             assert.eql(bigint(i).add(bigint(j)).toString(), ks);
+            assert.eql(bigint.add(i, j).toString(), ks);
         }
     }
     
@@ -59,6 +60,7 @@ exports.sub = function () {
             assert.eql(bigint(i).sub(j).toString(), ks);
             assert.eql(bigint(i).sub(js).toString(), ks);
             assert.eql(bigint(i).sub(bigint(j)).toString(), ks);
+            assert.eql(bigint.sub(i, j).toString(), ks);
         }
     }
     
@@ -87,6 +89,7 @@ exports.mul = function () {
             assert.eql(bigint(i).mul(j).toString(), ks);
             assert.eql(bigint(i).mul(js).toString(), ks);
             assert.eql(bigint(i).mul(bigint(j)).toString(), ks);
+            assert.eql(bigint.mul(i, j).toString(), ks);
         }
     }
     
@@ -124,6 +127,7 @@ exports.div = function () {
                 assert.eql(bigint(i).div(j).toString(), ks);
                 assert.eql(bigint(i).div(js).toString(), ks);
                 assert.eql(bigint(i).div(bigint(j)).toString(), ks);
+                assert.eql(bigint.div(i, j).toString(), ks);
             }
         }
     }
@@ -200,6 +204,7 @@ exports.mod = function () {
                 assert.eql(bigint(i).mod(j).toString(), ks);
                 assert.eql(bigint(i).mod(js).toString(), ks);
                 assert.eql(bigint(i).mod(bigint(j)).toString(), ks);
+                assert.eql(bigint.mod(i, j).toString(), ks);
             }
         }
     }
