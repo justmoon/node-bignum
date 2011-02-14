@@ -103,3 +103,11 @@ BigInt.prototype.toString = function (base) {
         }
     };
 });
+
+BigInt.prototype.abs = function () {
+    return BigInt.fromId(bigint.babs(this.id));
+};
+
+BigInt.prototype.neg = function () {
+    return BigInt.fromId(bigint.bneg(this.id));
+};
