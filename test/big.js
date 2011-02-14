@@ -22,14 +22,43 @@ exports.create = function () {
     assert.eql(bigint('1.23e-45').toString(), '0');
 };
 
-exports.multiply = function () {
-    assert.eql(bigint(3).mul(4).toString(), '12');
-    assert.eql(bigint(3).mul('4').toString(), '12');
-    assert.eql(bigint(3).mul(bigint(4)).toString(), '12');
-    
-    assert.eql(bigint(5).mul(-7).toString(), '-35');
-    assert.eql(bigint(5).mul('-7').toString(), '-35');
-    assert.eql(bigint(5).mul(bigint('-7')).toString(), '-35');
+exports.add = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i + j).toString();
+            assert.eql(bigint(i).add(j).toString(), ks);
+            assert.eql(bigint(i).add(js).toString(), ks);
+            assert.eql(bigint(i).add(bigint(j)).toString(), ks);
+        }
+    }
+};
+
+exports.sub = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i - j).toString();
+            assert.eql(bigint(i).sub(j).toString(), ks);
+            assert.eql(bigint(i).sub(js).toString(), ks);
+            assert.eql(bigint(i).sub(bigint(j)).toString(), ks);
+        }
+    }
+};
+
+exports.mul = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i * j).toString();
+            assert.eql(bigint(i).mul(j).toString(), ks);
+            assert.eql(bigint(i).mul(js).toString(), ks);
+            assert.eql(bigint(i).mul(bigint(j)).toString(), ks);
+        }
+    }
     
     assert.eql(
         bigint('10000000000000000000000000000').mul(123).toString(),
@@ -40,16 +69,6 @@ exports.multiply = function () {
         bigint('10000000000000000000000000000').mul(-123).toString(),
         '-1230000000000000000000000000000'
     );
-};
-
-exports.add = function () {
-    assert.eql(bigint(3).add(4).toString(), '7');
-    assert.eql(bigint(3).add('4').toString(), '7');
-    assert.eql(bigint(3).add(bigint(4)).toString(), '7');
-    
-    assert.eql(bigint(5).add(-7).toString(), '-2');
-    assert.eql(bigint(5).add('-7').toString(), '-2');
-    assert.eql(bigint(5).add(bigint('-7')).toString(), '-2');
 };
 
 if (process.argv[1] === __filename) {
