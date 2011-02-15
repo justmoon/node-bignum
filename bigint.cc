@@ -194,3 +194,34 @@ extern "C" uint32_t brand0 (uint32_t i) {
     bigints[bigindex] = res;
     return bigindex++;
 }
+
+extern "C" uint32_t big_import (
+    size_t count, char order, size_t size, char endian, size_t nails, char *data
+) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    
+    mpz_import(*res, count, order, size, endian, nails, (void *) data);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" char * big_export (
+    uint32_t i, size_t count, char order, size_t size, char endian, size_t nails
+) {
+    char *res = (char *) malloc(4 + size);
+    res += 4;
+    
+    size_t *countp;
+    mpz_export(res, countp, order, size, endian, nails, *bigints[i]);
+    
+    // 32-bit big endian size
+    res -= 4;
+    res[0] = (char) (*countp & 0xff);
+    res[1] = (char) ((*countp & (0xff << 8)) >> 8);
+    res[2] = (char) *countp & ((0xff << 16) >> 16);
+    res[3] = (char) *countp & ((0xff << 24) >> 24);
+    
+    return res;
+}
