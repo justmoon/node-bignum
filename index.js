@@ -195,7 +195,19 @@ BigInt.prototype.rand = function (to) {
     }
 };
 
-BigInt.prototype.pack = function () {
+BigInt.pack = function (buf, opts) {
+    if (!opts) opts = {};
+    var order = opts.order || 1; // word ordering
+    var endian = opts.endian === undefined ? 1 : opts.endian; // big by default
+    var nails = opts.nails || 0; // full words by default
+    var size = opts.size || 1;
+    
+    return BigInt.fromId(
+        bigint.bigImport(
+            Math.floor(buf.length / size),
+            order, size, endian, nails, buf.toString()
+        )
+    );
 };
 
 BigInt.prototype.unpack = function () {
