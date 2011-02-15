@@ -25,6 +25,13 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
     
     brand0 : [ 'uint32', [ 'uint32' ] ],
+    
+    bigImport : [ 'uint32', [
+        'size_t', 'char', 'size_t', 'char', 'size_t', 'string'
+    ] ],
+    bigExport : [ 'string', [
+        'uint32', 'size_t', 'char', 'size_t', 'char', 'size_t'
+    ] ],
 });
 
 module.exports = BigInt;
@@ -186,6 +193,13 @@ BigInt.prototype.rand = function (to) {
         y.destroy();
         return res;
     }
+};
+
+BigInt.prototype.pack = function () {
+};
+
+BigInt.prototype.unpack = function () {
+    
 };
 
 Object.keys(BigInt.prototype).forEach(function (name) {

@@ -195,7 +195,7 @@ extern "C" uint32_t brand0 (uint32_t i) {
     return bigindex++;
 }
 
-extern "C" uint32_t big_import (
+extern "C" uint32_t bigImport (
     size_t count, char order, size_t size, char endian, size_t nails, char *data
 ) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
@@ -207,7 +207,7 @@ extern "C" uint32_t big_import (
     return bigindex++;
 }
 
-extern "C" char * big_export (
+extern "C" char * bigExport (
     uint32_t i, size_t count, char order, size_t size, char endian, size_t nails
 ) {
     char *res = (char *) malloc(4 + size);
