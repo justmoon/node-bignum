@@ -259,7 +259,6 @@ exports.rand = function () {
         assert.ok(0 <= x  && x < i);
         
         var y = bigint(i).rand(i + 10).toNumber();
-console.dir([ i, y ]);
         assert.ok(i <= y && y < i + 10);
         
         var z = bigint.rand(i, i + 10).toNumber();

@@ -176,9 +176,12 @@ BigInt.prototype.rand = function (to) {
         }
     }
     else {
-        var x = this.sub(to);
+        var x = to instanceof BigInt
+            ? to.sub(this)
+            : BigInt.sub(to, this)
+        ;
         var y = BigInt.fromId(bigint.brand0(x.id));
-        var res = y.add(to);
+        var res = y.add(this);
         x.destroy();
         y.destroy();
         return res;
