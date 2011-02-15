@@ -93,3 +93,14 @@ Return a new `bigint` with the instance value raised to the `n`th power.
 
 Return a new `bigint` with the instance value raised to the `n`th power modulo
 `m`.
+
+.rand()
+-------
+.rand(upperBound)
+-----------------
+
+If `upperBound` is supplied, return a random `bigint` between the instance value
+and `upperBound - 1`, inclusive.
+
+Otherwise, return a random `bigint` between 0 and the instance value - 1,
+inclusive.
