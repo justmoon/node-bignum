@@ -297,6 +297,28 @@ exports.pack_be_le = function () {
     assert.eql(num_be, num_le);
 };
 
+exports.pack_be_le_highbits = function () {
+    var buf_be = new Buffer([
+        201, 202, 203, 204,
+        205, 206, 207, 208, 
+    ]);
+    var buf_le = new Buffer([
+        204, 203, 202, 201,
+        208, 207, 206, 205,
+    ]);
+    
+    var num_be = bigint
+        .pack(buf_be, { size : 4, endian : 'big' })
+        .toString()
+    ;
+    var num_le = bigint
+        .pack(buf_le, { size : 4, endian : 'little' })
+        .toString()
+    ;
+    
+    assert.eql(num_be, num_le);
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {
