@@ -12,7 +12,7 @@ example
 =======
 
     var bigint = require('bigint');
-
+    
     var b = bigint('782910138827292261791972728324982')
         .sub('182373273283402171237474774728373')
         .div(8)
@@ -23,10 +23,41 @@ example
     $ node simple.js
     <BigInt 75067108192986261319312244199576>
 
-methods
-=======
+methods[0]
+==========
 
-For all of the instance methods below except for toString you can write either
+bigint(n, base=10)
+------------------
+
+Create a new `bigint` from `n` and a base. `n` can be a string, integer, or
+another `bigint`.
+
+If you pass in a string you can set the base that string is encoded in.
+
+bigint.pack(buf, opts)
+----------------------
+
+Create a new `bigint` from a `Buffer`, `buf`. Options are taken from
+[mpz_import](http://gmplib.org/manual/Integer-Import-and-Export.html#Integer-Import-and-Export).
+
+The default options are:
+    {
+        order : 1, // low-to-high indexed word ordering
+        endian : 'big',
+        size : 1, // number of bytes in each word
+        nails : 0, // number of bits to skip in each word
+    }
+
+.toString(base=10)
+------------------
+
+Print out the `bigint` instance in the requested base as a string.
+
+
+methods[1]
+==========
+
+For all of the instance methods below you can write either
 
     bigint.method(x, y, z)
 
@@ -34,24 +65,17 @@ or if x is a `bigint` instance``
 
     x.method(y, z)
 
-bigint(n, base=10)
-------------------
-
-Create a new bigint from `n` and a base. `n` can be a string, integer, or
-another `bigint`.
-
-If you pass in a string you can set the base that string is encoded in.
-
 .destroy()
 ----------
 
-Destroy a bigint. This module is using node-ffi so I can't hook onto the
+Destroy a `bigint`. This module is using node-ffi so I can't hook onto the
 GC easily. You only need to call this if you're creating bigints in a loop.
 
-.toString(base=10)
-------------------
+.toNumber()
+-----------
 
-Print out the `bigint` instance in the requested base as a string.
+Turn a `bigint` into a `Number`. If the `bigint` is too big you'll lose
+precision or you'll get ±`Infinity`.
 
 .add(n)
 -------
