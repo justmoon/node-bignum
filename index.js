@@ -29,9 +29,6 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     bigImport : [ 'uint32', [
         'size_t', 'char', 'size_t', 'char', 'size_t', 'string'
     ] ],
-    bigExport : [ 'string', [
-        'uint32', 'size_t', 'char', 'size_t', 'char', 'size_t'
-    ] ],
 });
 
 module.exports = BigInt;
@@ -208,10 +205,6 @@ BigInt.pack = function (buf, opts) {
             order, size, endian, nails, buf.toString()
         )
     );
-};
-
-BigInt.prototype.unpack = function () {
-    
 };
 
 Object.keys(BigInt.prototype).forEach(function (name) {
