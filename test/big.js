@@ -1,5 +1,6 @@
 var assert = require('assert');
 var bigint = require('bigint');
+var put = require('put');
 
 exports.create = function () {
     assert.eql(bigint(1337).toString(), '1337');
@@ -264,6 +265,36 @@ exports.rand = function () {
         var z = bigint.rand(i, i + 10).toNumber();
         assert.ok(i <= z && z < i + 10);
     }
+};
+
+exports.pack_be = function () {
+    var buf1 = new Buffer([1,2,3,4]);
+    var num = bigint.pack(buf1, { size : 4 }).toNumber();
+    var buf2 = put().word32be(num).buffer();
+    assert.eql(buf1, buf2);
+};
+
+exports.pack_le = function () {
+    var buf1 = new Buffer([1,2,3,4]);
+    var num = bigint.pack(buf1, { size : 4, endian : 'little' }).toNumber();
+    var buf2 = put().word32le(num).buffer();
+    assert.eql(buf1, buf2);
+};
+
+exports.pack_be_le = function () {
+    var buf_be = new Buffer([1,2,3,4,5,6,7,8]);
+    var buf_le = new Buffer([4,3,2,1,8,7,6,5]);
+    
+    var num_be = bigint
+        .pack(buf_be, { size : 4, endian : 'big' })
+        .toString()
+    ;
+    var num_le = bigint
+        .pack(buf_le, { size : 4, endian : 'little' })
+        .toString()
+    ;
+    
+    assert.eql(num_be, num_le);
 };
 
 if (process.argv[1] === __filename) {

@@ -192,10 +192,23 @@ BigInt.prototype.rand = function (to) {
     }
 };
 
+var endians = {
+    big : 1,
+    little : -1,
+    system : 0,
+    1 : 1,
+    0 : 0,
+    '-1' : -1,
+};
+
 BigInt.pack = function (buf, opts) {
     if (!opts) opts = {};
     var order = opts.order || 1; // word ordering
-    var endian = opts.endian === undefined ? 1 : opts.endian; // big by default
+    var endian = opts.endian === undefined
+        ? endians.big // big by default
+        : endians[opts.endian]
+    ;
+    
     var nails = opts.nails || 0; // full words by default
     var size = opts.size || 1;
     
