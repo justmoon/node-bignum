@@ -244,6 +244,10 @@ BigInt.prototype.unpack = function (opts) {
     var size = opts.size || 1;
     
     var hex = this.toString(16);
+    if (hex.charAt(0) === '-') throw new Error(
+        'unpacking negative numbers not supported yet'
+    );
+    
     var hx = ((hex.length % 2 === 1 ? '0' : '') + hex)
         .split(new RegExp('(.{' + (2 * size) + '})'))
         .filter(function (s) { return s.length > 0 })

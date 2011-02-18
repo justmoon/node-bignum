@@ -369,6 +369,10 @@ exports.unpack_pack = function () {
             b.toString()
         );
     });
+    
+    assert.throws(function () {
+        bigint(-1).unpack(); // can't pack negative numbers yet
+    });
 };
 
 if (process.argv[1] === __filename) {
