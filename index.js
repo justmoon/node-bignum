@@ -232,6 +232,33 @@ BigInt.pack = function (buf, opts) {
     );
 };
 
+BigInt.prototype.unpack = function (opts) {
+    if (!opts) opts = {};
+    var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
+        || opts.order || 'forward'
+    ;
+    
+    var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
+        || opts.endian || 'big'
+    ;
+    var size = opts.size || 1;
+    
+    var hex = this.toString(16)
+        .split(new RegExp('(.{' + (2 * size) + '})'))
+        .filter(function (s) { return s.length > 0 })
+    ;
+    
+    var buf = new Buffer(hex.length);
+    (order === 'forward' ? hex : hex.reverse()).forEach(function (chunk, i) {
+        for (var j = 0; j < size; j++) {
+            var ix = i * size + (endian === 'big' ? j : size - j - 1);
+            buf[ix] = parseInt(chunk.slice(j*2,j*2+2), 16);
+        }
+    });
+    
+    return buf;
+};
+
 Object.keys(BigInt.prototype).forEach(function (name) {
     if (name === 'inspect' || name === 'toString') return;
     
