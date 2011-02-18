@@ -349,6 +349,28 @@ exports.pack_high_bits = function () {
     assert.eql(num_be, num_le);
 };
 
+exports.unpack_pack = function () {
+    var nums = [
+        -1, 0, 1, 10, 15, -3, 16,
+        7238, 1337, 31337, 505050,
+        '172389721984375328763297498273498732984324',
+        '-32848432742',
+        '-12988282841231897498217398217398127983721983719283721',
+        '718293798217398217312387213972198321'
+    ];
+    
+    nums.forEach(function (num) {
+        var b = bigint(num);
+        var u = b.unpack();
+        
+        assert.ok(u);
+        assert.eql(
+            bigint.pack(u).toString(),
+            b.toString()
+        );
+    });
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {
