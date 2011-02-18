@@ -34,25 +34,24 @@ another `bigint`.
 
 If you pass in a string you can set the base that string is encoded in.
 
-bigint.pack(buf, opts)
-----------------------
-
-Create a new `bigint` from a `Buffer`, `buf`. Options are taken from
-[mpz_import](http://gmplib.org/manual/Integer-Import-and-Export.html#Integer-Import-and-Export).
-
-The default options are:
-    {
-        order : 1, // low-to-high indexed word ordering
-        endian : 'big',
-        size : 1, // number of bytes in each word
-        nails : 0, // number of bits to skip in each word
-    }
-
 .toString(base=10)
 ------------------
 
 Print out the `bigint` instance in the requested base as a string.
 
+bigint.pack(buf, opts)
+----------------------
+
+Create a new `bigint` from a `Buffer`.
+
+The default options are:
+    {
+        order : 'forward', // low-to-high indexed word ordering
+        endian : 'big',
+        size : 1, // number of bytes in each word
+    }
+
+See also: `.unpack()`.
 
 methods[1]
 ==========
@@ -76,6 +75,20 @@ GC easily. You only need to call this if you're creating bigints in a loop.
 
 Turn a `bigint` into a `Number`. If the `bigint` is too big you'll lose
 precision or you'll get ±`Infinity`.
+
+.unpack(opts)
+-------------
+
+Return a new `Buffer` with the data from the `bigint`.
+
+The default options are:
+    {
+        order : 'forward', // low-to-high indexed word ordering
+        endian : 'big',
+        size : 1, // number of bytes in each word
+    }
+
+See also: `bigint.pack(buf, opts)`.
 
 .add(n)
 -------
