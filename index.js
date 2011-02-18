@@ -243,13 +243,14 @@ BigInt.prototype.unpack = function (opts) {
     ;
     var size = opts.size || 1;
     
-    var hex = this.toString(16)
+    var hex = this.toString(16);
+    var hx = ((hex.length % 2 === 1 ? '0' : '') + hex)
         .split(new RegExp('(.{' + (2 * size) + '})'))
         .filter(function (s) { return s.length > 0 })
     ;
     
-    var buf = new Buffer(hex.length);
-    (order === 'forward' ? hex : hex.reverse()).forEach(function (chunk, i) {
+    var buf = new Buffer(hx.length);
+    (order === 'forward' ? hx : hx.reverse()).forEach(function (chunk, i) {
         for (var j = 0; j < size; j++) {
             var ix = i * size + (endian === 'big' ? j : size - j - 1);
             buf[ix] = parseInt(chunk.slice(j*2,j*2+2), 16);
