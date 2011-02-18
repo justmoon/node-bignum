@@ -283,6 +283,28 @@ exports.pack_le = function () {
     assert.eql(buf1, buf2);
 };
 
+exports.pack_le_rev = function () {
+    var buf = new Buffer([1,2,3,4]);
+    var bufRev = new Buffer([3,4,1,2]);
+    
+    var num = bigint.pack(buf, {
+        size : 2,
+        endian : 'little',
+        order : 1,
+    }).toNumber();
+    
+    var numRev = bigint.pack(bufRev, {
+        size : 2,
+        endian : 'little',
+        order : -1,
+    }).toNumber();
+    
+    assert.eql(num, numRev);
+    
+    var bufPut = put().word32le(num).buffer();
+    assert.eql(buf, bufPut);
+};
+
 exports.pack_be_le = function () {
     var buf_be = new Buffer([1,2,3,4,5,6,7,8]);
     var buf_le = new Buffer([4,3,2,1,8,7,6,5]);
