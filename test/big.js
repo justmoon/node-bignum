@@ -271,7 +271,9 @@ exports.pack_be = function () {
     var buf1 = new Buffer([1,2,3,4]);
     var num = bigint.pack(buf1, { size : 4 }).toNumber();
     var buf2 = put().word32be(num).buffer();
-    assert.eql(buf1, buf2);
+    assert.eql(buf1, buf2, 
+        [].join.call(buf1, '') + ' != ' + [].join.call(buf2, '')
+    );
 };
 
 exports.pack_le = function () {

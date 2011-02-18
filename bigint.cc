@@ -194,15 +194,3 @@ extern "C" uint32_t brand0 (uint32_t i) {
     bigints[bigindex] = res;
     return bigindex++;
 }
-
-extern "C" uint32_t bigImport (
-    size_t count, char order, size_t size, char endian, size_t nails, char *data
-) {
-    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-    mpz_init(*res);
-    
-    mpz_import(*res, count, order, size, endian, nails, (void *) data);
-    
-    bigints[bigindex] = res;
-    return bigindex++;
-}

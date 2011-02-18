@@ -27,10 +27,6 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
     
     brand0 : [ 'uint32', [ 'uint32' ] ],
-    
-    bigImport : [ 'uint32', [
-        'size_t', 'char', 'size_t', 'char', 'size_t', 'string'
-    ] ],
 });
 
 module.exports = BigInt;
@@ -197,31 +193,43 @@ BigInt.prototype.rand = function (to) {
 };
 
 var endians = {
-    big : 1,
-    little : -1,
-    system : 0,
-    1 : 1,
-    0 : 0,
-    '-1' : -1,
+    1 : 'big',
+    '-1' : 'little',
 };
 
 BigInt.pack = function (buf, opts) {
     if (!opts) opts = {};
     var order = opts.order || 1; // word ordering
-    var endian = opts.endian === undefined
-        ? endians.big // big by default
-        : endians[opts.endian]
+    var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
+        || opts.endian || 'big'
     ;
     
-    var nails = opts.nails || 0; // full words by default
     var size = opts.size || 1;
     
-    return BigInt.fromId(
-        bigint.bigImport(
-            Math.floor(buf.length / size),
-            order, size, endian, nails, buf.toString()
-        )
-    );
+    if (buf.length % size !== 0) {
+        throw new RangeError('Buffer length (' + buf.length + ')'
+            + ' must be a multiple of size (' + size + ')'
+        );
+    }
+    
+    var hex = [];
+    for (var i = 0; i < buf.length; i += size) {
+        var chunk = [];
+        for (var j = 0; j < size; j++) {
+            chunk.push(buf[
+                i + (endian === 'big' ? j : (size - j - 1))
+            ]);
+        }
+        
+        hex.push(chunk
+            .map(function (c) {
+                return (c < 16 ? '0' : '') + c.toString(16);
+            })
+            .join('')
+        );
+    }
+    
+    return new BigInt(hex.join(''), 16);
 };
 
 Object.keys(BigInt.prototype).forEach(function (name) {
