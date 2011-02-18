@@ -23,8 +23,7 @@
         "url" : "http://substack.net"
     },
     "dependencies" : {
-        "node-ffi" : ">=0.2.0",
-        "OnCollect" : ">=1.0.0"
+        "node-ffi" : ">=0.2.0"
     },
     "devDependencies" : {
         "expresso" : ">=0.6.0",
