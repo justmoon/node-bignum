@@ -192,14 +192,12 @@ BigInt.prototype.rand = function (to) {
     }
 };
 
-var endians = {
-    1 : 'big',
-    '-1' : 'little',
-};
-
 BigInt.pack = function (buf, opts) {
     if (!opts) opts = {};
-    var order = opts.order || 1; // word ordering
+    var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
+        || opts.order || 'forward'
+    ;
+    
     var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
         || opts.endian || 'big'
     ;
@@ -229,7 +227,9 @@ BigInt.pack = function (buf, opts) {
         );
     }
     
-    return new BigInt(hex.join(''), 16);
+    return new BigInt(
+        (order === 'forward' ? hex : hex.reverse()).join(''), 16
+    );
 };
 
 Object.keys(BigInt.prototype).forEach(function (name) {

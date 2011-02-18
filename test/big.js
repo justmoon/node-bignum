@@ -272,7 +272,7 @@ exports.pack_be = function () {
     var num = bigint.pack(buf1, { size : 4 }).toNumber();
     var buf2 = put().word32be(num).buffer();
     assert.eql(buf1, buf2, 
-        [].join.call(buf1, '') + ' != ' + [].join.call(buf2, '')
+        [].slice.call(buf1) + ' != ' + [].slice.call(buf2)
     );
 };
 
@@ -290,19 +290,25 @@ exports.pack_le_rev = function () {
     var num = bigint.pack(buf, {
         size : 2,
         endian : 'little',
-        order : 1,
     }).toNumber();
     
     var numRev = bigint.pack(bufRev, {
         size : 2,
         endian : 'little',
-        order : -1,
+        order : 'backward',
     }).toNumber();
     
     assert.eql(num, numRev);
     
-    var bufPut = put().word32le(num).buffer();
-    assert.eql(buf, bufPut);
+    var bufPut = put()
+        .word16le(Math.floor(num / 256 / 256))
+        .word16le(num % (256 * 256))
+        .buffer()
+    ;
+    assert.eql(
+        buf, bufPut,
+        [].slice.call(buf) + ' != ' + [].slice.call(bufPut)
+    );
 };
 
 exports.pack_be_le = function () {
