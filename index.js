@@ -213,7 +213,7 @@ BigInt.prototype.nextPrime = function () {
     return BigInt.fromId(bigint.nextprime(this.id));
 };
 
-BigInt.pack = function (buf, opts) {
+BigInt.fromBuffer = function (buf, opts) {
     if (!opts) opts = {};
     var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
         || opts.order || 'forward'
@@ -253,7 +253,7 @@ BigInt.pack = function (buf, opts) {
     );
 };
 
-BigInt.prototype.unpack = function (opts) {
+BigInt.prototype.toBuffer = function (opts) {
     if (!opts) opts = {};
     var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
         || opts.order || 'forward'
@@ -266,7 +266,7 @@ BigInt.prototype.unpack = function (opts) {
     
     var hex = this.toString(16);
     if (hex.charAt(0) === '-') throw new Error(
-        'unpacking negative numbers not supported yet'
+        'converting negative numbers to Buffers not supported yet'
     );
     
     var hx = ((hex.length % 2 === 1 ? '0' : '') + hex)
