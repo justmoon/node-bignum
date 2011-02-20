@@ -141,3 +141,20 @@ and `upperBound - 1`, inclusive.
 
 Otherwise, return a random `bigint` between 0 and the instance value - 1,
 inclusive.
+
+.probPrime()
+------------
+
+Return whether the bigint is:
+
+* certainly prime (true)
+* probably prime ('maybe')
+* certainly composite (false)
+
+using [mpz_probab_prime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
+
+.nextPrime()
+------------
+
+Return the next prime greater than `this` using
+[mpz_nextprime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
