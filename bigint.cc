@@ -194,3 +194,16 @@ extern "C" uint32_t brand0 (uint32_t i) {
     bigints[bigindex] = res;
     return bigindex++;
 }
+
+extern "C" uint32_t probprime (uint32_t i, uint32_t reps) {
+    return mpz_probab_prime_p(*bigints[i], reps);
+}
+
+extern "C" uint32_t nextprime (uint32_t i) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_nextprime(*res, *bigints[i]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}

@@ -26,6 +26,8 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
     
     brand0 : [ 'uint32', [ 'uint32' ] ],
+    probprime : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    nextprime : [ 'uint32', [ 'uint32' ] ],
 });
 
 module.exports = BigInt;
@@ -200,6 +202,15 @@ BigInt.prototype.rand = function (to) {
         y.destroy();
         return res;
     }
+};
+
+BigInt.prototype.probPrime = function (reps) {
+    var n = bigint.probprime(this.id, reps || 10);
+    return { 2 : true, 1 : 'maybe', 0 : false }[n];
+};
+
+BigInt.prototype.nextPrime = function () {
+    return BigInt.fromId(bigint.nextprime(this.id));
 };
 
 BigInt.pack = function (buf, opts) {
