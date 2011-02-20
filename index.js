@@ -204,6 +204,26 @@ BigInt.prototype.cmp = function (num) {
     }
 };
 
+BigInt.prototype.gt = function (num) {
+    return this.cmp(num) > 0;
+};
+
+BigInt.prototype.ge = function (num) {
+    return this.cmp(num) >= 0;
+};
+
+BigInt.prototype.eq = function (num) {
+    return this.cmp(num) === 0;
+};
+
+BigInt.prototype.lt = function (num) {
+    return this.cmp(num) < 0;
+};
+
+BigInt.prototype.le = function (num) {
+    return this.cmp(num) <= 0;
+};
+
 BigInt.prototype.rand = function (to) {
     if (this.destroyed) throw new Error('BigInt already destroyed');
     
