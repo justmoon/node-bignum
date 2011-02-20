@@ -375,6 +375,14 @@ exports.unpack_pack = function () {
     });
 };
 
+exports.destroy = function () {
+    var b = bigint(100);
+    b.destroy();
+    assert.throws(function () {
+        b.destroy();
+    });
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {

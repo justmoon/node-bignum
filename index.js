@@ -1,5 +1,4 @@
 var ffi = require('node-ffi');
-//var OnCollect = require('OnCollect');
 
 var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     create : [ 'uint32', [] ],
@@ -33,7 +32,6 @@ module.exports = BigInt;
 
 function BigInt (num, base) {
     if (!(this instanceof BigInt)) return new BigInt(num, base);
-    //OnCollect(this, function (bigi) { bigint.destroy(bigi.id) });
     
     if (typeof num !== 'string') num = num.toString(base || 10);
     
@@ -72,8 +70,9 @@ BigInt.fromId = function (id) {
 };
 
 BigInt.prototype.destroy = function () {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
     bigint.destroy(this.id);
-    return this;
+    this.destroyed = true;
 };
 
 BigInt.prototype.inspect = function () {
@@ -81,6 +80,7 @@ BigInt.prototype.inspect = function () {
 };
 
 BigInt.prototype.toString = function (base) {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
     return bigint.toString(this.id, base || 10);
 };
 
@@ -90,6 +90,8 @@ BigInt.prototype.toNumber = function () {
 
 [ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
     BigInt.prototype[op] = function (num) {
+        if (this.destroyed) throw new Error('BigInt already destroyed');
+        
         if (num instanceof BigInt) {
             return BigInt.fromId(bigint['b'+op](this.id, num.id));
         }
@@ -124,14 +126,18 @@ BigInt.prototype.toNumber = function () {
 });
 
 BigInt.prototype.abs = function () {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
     return BigInt.fromId(bigint.babs(this.id));
 };
 
 BigInt.prototype.neg = function () {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
     return BigInt.fromId(bigint.bneg(this.id));
 };
 
 BigInt.prototype.powm = function (num, mod) {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
+    
     if (num instanceof BigInt && mod instanceof BigInt) {
         return BigInt.fromId(bigint.bpowm(this.id, num.id, mod.id));
     }
@@ -156,6 +162,8 @@ BigInt.prototype.powm = function (num, mod) {
 };
 
 BigInt.prototype.pow = function (num) {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
+    
     if (typeof num === 'number') {
         if (num >= 0) {
             return BigInt.fromId(bigint.upow(this.id, num));
@@ -171,6 +179,8 @@ BigInt.prototype.pow = function (num) {
 };
 
 BigInt.prototype.rand = function (to) {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
+    
     if (to === undefined) {
         if (this.toString() === '1') {
             return new BigInt(0);
