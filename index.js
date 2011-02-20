@@ -25,8 +25,12 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     upowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
     
+    bcompare : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    scompare : [ 'uint32', [ 'uint32', 'int32' ] ],
+    ucompare : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    
     brand0 : [ 'uint32', [ 'uint32' ] ],
-    probprime : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    probprime : [ 'char', [ 'uint32', 'uint32' ] ],
     nextprime : [ 'uint32', [ 'uint32' ] ],
 });
 
@@ -177,6 +181,26 @@ BigInt.prototype.pow = function (num) {
     else {
         var x = parseInt(num.toString(), 10);
         return BigInt.prototype.pow.call(this, x);
+    }
+};
+
+BigInt.prototype.cmp = function (num) {
+    if (num instanceof BigInt) {
+        return bigint.bcompare(this.id, num.id);
+    }
+    else if (typeof num === 'number') {
+        if (num < 0) {
+            return bigint.scompare(this.id, num);
+        }
+        else {
+            return bigint.ucompare(this.id, num);
+        }
+    }
+    else {
+        var x = bigint(num);
+        var res = bigint.bcompare(this.id, x.id);
+        x.destroy();
+        return res;
     }
 };
 

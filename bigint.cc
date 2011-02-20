@@ -195,7 +195,7 @@ extern "C" uint32_t brand0 (uint32_t i) {
     return bigindex++;
 }
 
-extern "C" uint32_t probprime (uint32_t i, uint32_t reps) {
+extern "C" char probprime (uint32_t i, uint32_t reps) {
     return mpz_probab_prime_p(*bigints[i], reps);
 }
 
@@ -206,4 +206,16 @@ extern "C" uint32_t nextprime (uint32_t i) {
     
     bigints[bigindex] = res;
     return bigindex++;
+}
+
+extern "C" uint32_t bcompare (uint32_t i, uint32_t j) {
+    return mpz_cmp(*bigints[i], *bigints[j]);
+}
+
+extern "C" uint32_t scompare (uint32_t i, int64_t x) {
+    return mpz_cmp_si(*bigints[i], x);
+}
+
+extern "C" uint32_t ucompare (uint32_t i, uint64_t x) {
+    return mpz_cmp_ui(*bigints[i], x);
 }
