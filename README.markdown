@@ -11,6 +11,9 @@ to perform infinite-precision arithmetic using
 example
 =======
 
+simple.js
+---------
+
     var bigint = require('bigint');
     
     var b = bigint('782910138827292261791972728324982')
@@ -22,6 +25,35 @@ example
 ***
     $ node simple.js
     <BigInt 75067108192986261319312244199576>
+
+perfect.js
+----------
+
+Generate the perfect numbers:
+
+    // If 2**n-1 is prime, then (2**n-1) * 2**(n-1) is perfect.
+    var bigint = require('bigint');
+
+    for (var n = 0; n < 100; n++) {
+        var p = bigint.pow(2, n).sub(1);
+        if (p.probPrime(50)) {
+            var perfect = p.mul(bigint.pow(2, n - 1));
+            console.log(perfect.toString());
+        }
+    }
+
+***
+
+    6
+    28
+    496
+    8128
+    33550336
+    8589869056
+    137438691328
+    2305843008139952128
+    2658455991569831744654692615953842176
+    191561942608236107294793378084303638130997321548169216
 
 methods[0]
 ==========
