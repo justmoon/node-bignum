@@ -219,6 +219,22 @@ exports.mod = function () {
     );
 };
 
+exports.cmp = function () {
+    for (var i = -10; i <= 10; i++) {
+        var bi = bigint(i);
+        
+        for (var j = -10; j <= 10; j++) {
+            [ j, bigint(j) ].forEach(function (jj) {
+                assert.eql(bi.lt(jj), i < j);
+                assert.eql(bi.le(jj), i <= j);
+                assert.eql(bi.eq(jj), i === j);
+                assert.eql(bi.gt(jj), i > j);
+                assert.eql(bi.ge(jj), i >= j);
+            });
+        }
+    }
+};
+
 exports.powm = function () {
     var twos = [ 2, '2', bigint(2), bigint('2') ]
     var tens = [ 100000, '100000', bigint(100000), bigint(100000) ];

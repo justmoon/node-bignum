@@ -25,9 +25,9 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     upowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
     upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
     
-    bcompare : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    scompare : [ 'uint32', [ 'uint32', 'int32' ] ],
-    ucompare : [ 'uint32', [ 'uint32', 'uint64' ] ],
+    bcompare : [ 'int32', [ 'uint32', 'uint32' ] ],
+    scompare : [ 'int32', [ 'uint32', 'int32' ] ],
+    ucompare : [ 'int32', [ 'uint32', 'uint64' ] ],
     
     brand0 : [ 'uint32', [ 'uint32' ] ],
     probprime : [ 'char', [ 'uint32', 'uint32' ] ],
