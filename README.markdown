@@ -116,6 +116,39 @@ Return a new `bigint` with the absolute value of the instance.
 
 Return a new `bigint` with the negative of the instance value.
 
+.cmp(n)
+-------
+
+Compare the instance value to `n`. Return a positive integer if `> n`, a
+negative integer if `< n`, and 0 if `== n`.
+
+.gt(n)
+------
+
+Return a boolean: whether the instance value is greater than n (`> n`).
+
+.ge(n)
+------
+
+Return a boolean: whether the instance value is greater than or equal to n
+(`>= n`).
+
+.eq(n)
+------
+
+Return a boolean: whether the instance value is equal to n (`== n`).
+
+.lt(n)
+------
+
+Return a boolean: whether the instance value is less than n (`< n`).
+
+.le(n)
+------
+
+Return a boolean: whether the instance value is less than or equal to n
+(`<= n`).
+
 .pow(n)
 -------
 
