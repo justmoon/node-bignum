@@ -1,5 +1,5 @@
 var ffi = require('node-ffi');
-var OnCollect = require('OnCollect');
+//var OnCollect = require('OnCollect');
 
 var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     create : [ 'uint32', [] ],
@@ -37,7 +37,7 @@ module.exports = BigInt;
 
 function BigInt (num, base) {
     if (!(this instanceof BigInt)) return new BigInt(num, base);
-    OnCollect(this, function (bigi) { bigint.destroy(bigi.id) });
+    //OnCollect(this, function (bigi) { bigint.destroy(bigi.id) });
     
     if (typeof num !== 'string') num = num.toString(base || 10);
     
