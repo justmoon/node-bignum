@@ -110,3 +110,27 @@ exports.buf_to_from = function () {
         bigint(-1).toBuffer(); // can't pack negative numbers yet
     });
 };
+
+exports.toBuf = function () {
+    var buf = new Buffer([ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f ]);
+    var b = bigint(
+        0x0a * 256*256*256*256*256
+        + 0x0b * 256*256*256*256
+        + 0x0c * 256*256*256
+        + 0x0d * 256*256
+        + 0x0e * 256
+        + 0x0f
+    );
+    
+    assert.eql(b.toString(16), 'a0b0c0d0e0f');
+    
+    assert.eql(
+        [].slice.call(b.toBuffer({ endian : 'big', size : 2 })),
+        [ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f ]
+    );
+    
+    assert.eql(
+        [].slice.call(b.toBuffer({ endian : 'little', size : 2 })),
+        [ 0x0b, 0x0a, 0x0d, 0x0c, 0x0f, 0x0e ]
+    );
+};
