@@ -83,6 +83,8 @@ The default options are:
         size : 1, // number of bytes in each word
     }
 
+Note that endian doesn't matter when size = 1.
+
 methods[1]
 ==========
 
@@ -117,6 +119,8 @@ The default options are:
         endian : 'big',
         size : 1, // number of bytes in each word
     }
+
+Note that endian doesn't matter when size = 1.
 
 .add(n)
 -------

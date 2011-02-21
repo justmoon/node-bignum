@@ -145,4 +145,11 @@ exports.toBuf = function () {
         })),
         [ 0x0d, 0x0c, 0x0b, 0x0a, 0x00, 0x00, 0x00, 0x0e ]
     );
+    
+    assert.eql(
+        [].slice.call(bigint(43135012110).toBuffer({
+            endian : 'big', size : 4
+        })),
+        [ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x00, 0x00, 0x00 ]
+    );
 };
