@@ -318,7 +318,8 @@ BigInt.prototype.toBuffer = function (opts) {
         .filter(function (s) { return s.length > 0 })
     ;
     
-    var buf = new Buffer(Math.ceil(hex.length / 2));
+    var len = Math.ceil(hex.length / (2 * size) * size);
+    var buf = new Buffer(len);
     (order === 'forward' ? hx : hx.reverse()).forEach(function (chunk, i) {
         for (var j = 0; j < size; j++) {
             var ix = i * size + (endian === 'big' ? j : size - j - 1);

@@ -138,4 +138,11 @@ exports.toBuf = function () {
         bigint.fromBuffer(buf).toString(16),
         b.toString(16)
     );
+    
+    assert.eql(
+        [].slice.call(bigint(43135012110).toBuffer({
+            endian : 'little', size : 4
+        })),
+        [ 0x0d, 0x0c, 0x0b, 0x0a, 0x00, 0x00, 0x00, 0x0e ]
+    );
 };
