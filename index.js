@@ -313,17 +313,19 @@ BigInt.prototype.toBuffer = function (opts) {
         'converting negative numbers to Buffers not supported yet'
     );
     
-    var hx = ((hex.length % 2 === 1 ? '0' : '') + hex)
+    var len = Math.ceil(hex.length / (2 * size)) * size;
+    var buf = new Buffer(len);
+    
+    // zero-pad the hex string so the chunks are all `size` long
+    while (hex.length < 2 * len) hex = '0' + hex;
+    
+    var hx = hex
         .split(new RegExp('(.{' + (2 * size) + '})'))
         .filter(function (s) { return s.length > 0 })
     ;
     
-    var len = Math.ceil(hex.length / (2 * size)) * size;
-    var buf = new Buffer(len);
     (order === 'forward' ? hx : hx.reverse())
     .forEach(function (chunk, i) {
-        while (chunk.length < size * 2) { chunk = chunk + '00' }
-        
         for (var j = 0; j < size; j++) {
             var ix = i * size + (endian === 'big' ? j : size - j - 1);
             buf[ix] = parseInt(chunk.slice(j*2,j*2+2), 16);
