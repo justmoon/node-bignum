@@ -167,3 +167,33 @@ exports.zeroPad = function () {
         [ 0x56, 0x34, 0x12, 0x00 ]
     );
 };
+
+exports.toMpint = function () {
+    // test values taken directly out of
+    // http://tools.ietf.org/html/rfc4251#page-10
+    
+    var refs = {
+        '0' : new Buffer([ 0x00, 0x00, 0x00, 0x00 ]),
+        '9a378f9b2e332a7' : new Buffer([
+            0x00, 0x00, 0x00, 0x08,
+            0x09, 0xa3, 0x78, 0xf9,
+            0xb2, 0xe3, 0x32, 0xa7,
+        ]),
+        '80' : new Buffer([ 0x00, 0x00, 0x00, 0x02, 0x00, 0x80 ]),
+        '-1234' : new Buffer([ 0x00, 0x00, 0x00, 0x02, 0xed, 0xcc ]),
+        '-deadbeef' : new Buffer([
+            0x00, 0x00, 0x00, 0x05, 0xff, 0x21, 0x52, 0x41, 0x11
+        ]),
+    };
+    
+    Object.keys(refs).forEach(function (key) {
+        var buf0 = bigint(key, 16).toBuffer('mpint');
+        var buf1 = refs[key];
+        
+        assert.eql(
+            buf0, buf1,
+            buf0.inspect() + ' != ' + buf1.inspect()
+            + ' for bigint(' + key + ')'
+        );
+    });
+};

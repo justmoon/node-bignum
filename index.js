@@ -298,6 +298,38 @@ BigInt.fromBuffer = function (buf, opts) {
 };
 
 BigInt.prototype.toBuffer = function (opts) {
+    if (typeof opts === 'string') {
+        if (opts !== 'mpint') return 'Unsupported Buffer representation';
+        
+        var abs = this.abs();
+        var buf = abs.toBuffer({ size : 1, endian : 'big' });
+        abs.destroy();
+        
+        var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
+        if (buf[0] & 0x80) len ++;
+        
+        var ret = new Buffer(4 + len);
+        if (len > 0) buf.copy(ret, 4 + (buf[0] & 0x80 ? 1 : 0));
+        if (buf[0] & 0x80) ret[4] = 0;
+        
+        ret[0] = len & (0xff << 24);
+        ret[1] = len & (0xff << 16);
+        ret[2] = len & (0xff << 8);
+        ret[3] = len & (0xff << 0);
+        
+        // two's compliment for negative integers:
+        var isNeg = this.lt(0);
+        if (isNeg) {
+            for (var i = 4; i < ret.length; i++) {
+                ret[i] = 0xff - ret[i];
+            }
+        }
+        ret[4] = (ret[4] & 0x7f) | (isNeg ? 0x80 : 0);
+        if (isNeg) ret[ret.length - 1] ++;
+        
+        return ret;
+    }
+    
     if (!opts) opts = {};
     var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
         || opts.order || 'forward'
