@@ -223,3 +223,14 @@ using [mpz_probab_prime](http://gmplib.org/manual/Number-Theoretic-Functions.htm
 
 Return the next prime greater than `this` using
 [mpz_nextprime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
+
+install
+=======
+
+You'll need the libffi and libgmp sources to compile this package.
+
+    sudo aptitude install lib{ffi,gmp3}-dev
+
+And then install with [npm](http://npmjs.org):
+
+    npm install bigint
