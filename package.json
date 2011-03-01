@@ -1,6 +1,6 @@
 {
     "name" : "bigint",
-    "version" : "0.0.9",
+    "version" : "0.0.10",
     "description" : "Arbitrary-precision integer arithmetic using libgmp",
     "main" : "./index.js",
     "repository" : {
@@ -33,5 +33,10 @@
         "test" : "expresso"
     },
     "license" : "MIT/X11",
-    "engine" : ["node >=0.2.0"]
+    "engine" : {
+        "node" : ">=0.2.0"
+    },
+    "scripts" : {
+        "install" : "node-waf configure build"
+    }
 }
