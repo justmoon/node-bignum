@@ -32,6 +32,7 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     brand0 : [ 'uint32', [ 'uint32' ] ],
     probprime : [ 'char', [ 'uint32', 'uint32' ] ],
     nextprime : [ 'uint32', [ 'uint32' ] ],
+    binvertm : [ 'uint32', [ 'uint32', 'uint32' ] ],
 });
 
 module.exports = BigInt;
@@ -244,6 +245,19 @@ BigInt.prototype.rand = function (to) {
         var res = y.add(this);
         x.destroy();
         y.destroy();
+        return res;
+    }
+};
+
+BigInt.prototype.invertm = function (mod) {
+    if (this.destroyed) throw new Error('BigInt already destroyed');
+    if (mod instanceof BigInt) {
+        return BigInt.fromId(bigint.binvertm(this.id, mod.id));
+    }
+    else {
+        var x = bigint(mod);
+        var res = BigInt.fromId(bigint.binvertm(this.id, x.id));
+        x.destroy();
         return res;
     }
 };

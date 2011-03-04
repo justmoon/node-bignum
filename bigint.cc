@@ -219,3 +219,12 @@ extern "C" int32_t scompare (uint32_t i, int64_t x) {
 extern "C" int32_t ucompare (uint32_t i, uint64_t x) {
     return mpz_cmp_ui(*bigints[i], x);
 }
+
+extern "C" uint32_t binvertm (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_invert(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
