@@ -196,6 +196,11 @@ Return a new `bigint` with the instance value raised to the `n`th power.
 Return a new `bigint` with the instance value raised to the `n`th power modulo
 `m`.
 
+.inversem(m)
+------------
+
+Compute the multiplicative inverse modulo `m`.
+
 .rand()
 -------
 .rand(upperBound)
