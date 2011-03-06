@@ -227,6 +227,7 @@ exports.cmp = function () {
                 assert.eql(bi.lt(jj), i < j);
                 assert.eql(bi.le(jj), i <= j);
                 assert.eql(bi.eq(jj), i === j);
+                assert.eql(bi.ne(jj), i !== j);
                 assert.eql(bi.gt(jj), i > j);
                 assert.eql(bi.ge(jj), i >= j);
             });

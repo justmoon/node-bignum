@@ -217,6 +217,10 @@ BigInt.prototype.eq = function (num) {
     return this.cmp(num) === 0;
 };
 
+BigInt.prototype.ne = function (num) {
+    return this.cmp(num) !== 0;
+};
+
 BigInt.prototype.lt = function (num) {
     return this.cmp(num) < 0;
 };
