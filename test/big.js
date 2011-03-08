@@ -270,6 +270,48 @@ exports.pow = function () {
     );
 };
 
+exports.and = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i & j).toString();
+            assert.eql(bigint(i).and(j).toString(), ks);
+            assert.eql(bigint(i).and(js).toString(), ks);
+            assert.eql(bigint(i).and(bigint(j)).toString(), ks);
+            assert.eql(bigint.and(i, j).toString(), ks);
+        }
+    }
+};
+
+exports.or = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i | j).toString();
+            assert.eql(bigint(i).or(j).toString(), ks);
+            assert.eql(bigint(i).or(js).toString(), ks);
+            assert.eql(bigint(i).or(bigint(j)).toString(), ks);
+            assert.eql(bigint.or(i, j).toString(), ks);
+        }
+    }
+};
+
+exports.xor = function () {
+    for (var i = -10; i < 10; i++) {
+        for (var j = -10; j < 10; j++) {
+            var is = i.toString();
+            var js = j.toString();
+            var ks = (i ^ j).toString();
+            assert.eql(bigint(i).xor(j).toString(), ks);
+            assert.eql(bigint(i).xor(js).toString(), ks);
+            assert.eql(bigint(i).xor(bigint(j)).toString(), ks);
+            assert.eql(bigint.xor(i, j).toString(), ks);
+        }
+    }
+};
+
 exports.rand = function () {
     for (var i = 1; i < 1000; i++) {
         var x = bigint(i).rand().toNumber();

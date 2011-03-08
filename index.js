@@ -239,8 +239,8 @@ BigInt.prototype.le = function (num) {
             return BigInt.fromId(bigint['b' + name](this.id, num.id));
         }
         else {
-            var x = bigint(num);
-            var res = bigint.band(this.id, x.id);
+            var x = new BigInt(num);
+            var res = bigint['b' + name](this.id, x.id);
             x.destroy();
             return BigInt.fromId(res);
         }
