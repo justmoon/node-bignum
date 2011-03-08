@@ -185,6 +185,23 @@ Return a boolean: whether the instance value is less than n (`< n`).
 Return a boolean: whether the instance value is less than or equal to n
 (`<= n`).
 
+.and(n)
+-------
+
+Return a new `bigint` with the instance value bitwise AND (&)-ed with `n`.
+
+.or(n)
+------
+
+Return a new `bigint` with the instance value bitwise inclusive-OR (|)-ed with
+`n`.
+
+.xor(n)
+-------
+
+Return a new `bigint` with the instance value bitwise exclusive-OR (^)-ed with
+`n`.
+
 .pow(n)
 -------
 
