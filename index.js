@@ -29,6 +29,10 @@ var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
     scompare : [ 'int32', [ 'uint32', 'int32' ] ],
     ucompare : [ 'int32', [ 'uint32', 'uint64' ] ],
     
+    band : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    bor : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    bxor : [ 'uint32', [ 'uint32', 'uint32' ] ],
+    
     brand0 : [ 'uint32', [ 'uint32' ] ],
     probprime : [ 'char', [ 'uint32', 'uint32' ] ],
     nextprime : [ 'uint32', [ 'uint32' ] ],
@@ -228,6 +232,20 @@ BigInt.prototype.lt = function (num) {
 BigInt.prototype.le = function (num) {
     return this.cmp(num) <= 0;
 };
+
+'and or xor'.split(' ').forEach(function (name) {
+    BigInt.prototype[name] = function (num) {
+        if (num instanceof BigInt) {
+            return BigInt.fromId(bigint['b' + name](this.id, num.id));
+        }
+        else {
+            var x = bigint(num);
+            var res = bigint.band(this.id, x.id);
+            x.destroy();
+            return BigInt.fromId(res);
+        }
+    };
+});
 
 BigInt.prototype.rand = function (to) {
     if (this.destroyed) throw new Error('BigInt already destroyed');

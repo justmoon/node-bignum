@@ -220,6 +220,33 @@ extern "C" int32_t ucompare (uint32_t i, uint64_t x) {
     return mpz_cmp_ui(*bigints[i], x);
 }
 
+extern "C" int32_t band (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_and(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" int32_t bor (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_ior(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
+extern "C" int32_t bxor (uint32_t i, uint32_t j) {
+    mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+    mpz_init(*res);
+    mpz_xor(*res, *bigints[i], *bigints[j]);
+    
+    bigints[bigindex] = res;
+    return bigindex++;
+}
+
 extern "C" uint32_t binvertm (uint32_t i, uint32_t j) {
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
     mpz_init(*res);
