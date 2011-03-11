@@ -1,43 +1,4 @@
-var ffi = require('node-ffi');
-
-var bigint = new ffi.Library(__dirname + '/build/default/libbigint', {
-    create : [ 'uint32', [] ],
-    destroy : [ 'uint32', [ 'uint32' ] ],
-    toString : [ 'string', [ 'uint32', 'uint32' ] ],
-    fromString : [ 'uint32', [ 'string', 'uint32' ] ],
-    
-    badd : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    bsub : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    bmul : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    bdiv : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    
-    uadd : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    usub : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    umul : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    udiv : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    
-    babs : [ 'uint32', [ 'uint32' ] ],
-    bneg : [ 'uint32', [ 'uint32' ] ],
-    
-    bmod : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    umod : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    bpowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
-    upowm : [ 'uint32', [ 'uint32', 'uint32', 'uint32' ] ],
-    upow : [ 'uint32', [ 'uint32', 'uint64' ] ],
-    
-    bcompare : [ 'int32', [ 'uint32', 'uint32' ] ],
-    scompare : [ 'int32', [ 'uint32', 'int32' ] ],
-    ucompare : [ 'int32', [ 'uint32', 'uint64' ] ],
-    
-    band : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    bor : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    bxor : [ 'uint32', [ 'uint32', 'uint32' ] ],
-    
-    brand0 : [ 'uint32', [ 'uint32' ] ],
-    probprime : [ 'char', [ 'uint32', 'uint32' ] ],
-    nextprime : [ 'uint32', [ 'uint32' ] ],
-    binvertm : [ 'uint32', [ 'uint32', 'uint32' ] ],
-});
+var bigint = new require('./build/default/bigint');
 
 module.exports = BigInt;
 
@@ -147,30 +108,30 @@ BigInt.prototype.neg = function () {
 };
 
 BigInt.prototype.powm = function (num, mod) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    
-    if (num instanceof BigInt && mod instanceof BigInt) {
-        return BigInt.fromId(bigint.bpowm(this.id, num.id, mod.id));
-    }
-    else if (num >= 0 && mod instanceof BigInt) {
-        var res = BigInt.fromId(bigint.upowm(this.id, num, mod.id));
-        return res;
-    }
-    else if (num instanceof BigInt && mod >= 0) {
-        var x = new BigInt(mod);
-        var res = BigInt.fromId(bigint.bpowm(this.id, num.id, x.id));
-        x.destroy();
-        return res;
-    }
-    else {
-        var x = new BigInt(num);
-        var y = new BigInt(mod);
-        var res = BigInt.fromId(bigint.bpowm(this.id, x.id, y.id));
-        x.destroy();
-        y.destroy();
-        return res;
-    }
-};
+	if (this.destroyed) throw new Error('BigInt already destroyed');
+	
+	var m, cleanMod = function() {}, res;
+
+	if ((typeof mod) === 'number' || (typeof mod) === 'string') {
+		m = new BigInt(mod);
+		cleanMod = function(bi) { bi.destroy(); };
+	} else if (mod instanceof BigInt) {
+		m = mod;
+	}
+
+	if ((typeof num) === 'number') {
+		res = BigInt.fromId(bigint.upowm(this.id, num, m.id));
+	} else if ((typeof num) === 'string') {
+		var n = new BigInt(num);
+		res = BigInt.fromId(bigint.bpowm(this.id, n.id, m.id));
+		n.destroy();
+	} else if (num instanceof BigInt) {
+		res = BigInt.fromId(bigint.bpowm(this.id, num.id, m.id));
+	}
+
+	cleanMod(m);
+	return res;
+}
 
 BigInt.prototype.pow = function (num) {
     if (this.destroyed) throw new Error('BigInt already destroyed');
