@@ -1,5 +1,5 @@
 var assert = require('assert');
-var bigint = require('bigint');
+var bigint = require('../');
 var put = require('put');
 
 exports.buf_be = function () {

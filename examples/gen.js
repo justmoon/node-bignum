@@ -1,7 +1,7 @@
 // Generate two primes p and q to the Digital Signature Standard (DSS)
 // http://www.itl.nist.gov/fipspubs/fip186.htm appendix 2.2
 
-var bigint = require('bigint');
+var bigint = require('../');
 var assert = require('assert');
 
 var q = bigint(2).pow(159).add(1).rand(bigint(2).pow(160)).nextPrime();

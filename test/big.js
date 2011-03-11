@@ -1,5 +1,5 @@
 var assert = require('assert');
-var bigint = require('bigint');
+var bigint = require('../');
 
 exports.create = function () {
     assert.eql(bigint(1337).toString(), '1337');
