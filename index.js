@@ -108,29 +108,29 @@ BigInt.prototype.neg = function () {
 };
 
 BigInt.prototype.powm = function (num, mod) {
-	if (this.destroyed) throw new Error('BigInt already destroyed');
-	
-	var m, cleanMod = function() {}, res;
+    if (this.destroyed) throw new Error('BigInt already destroyed');
+    
+    var m, cleanMod = function() {}, res;
 
-	if ((typeof mod) === 'number' || (typeof mod) === 'string') {
-		m = new BigInt(mod);
-		cleanMod = function(bi) { bi.destroy(); };
-	} else if (mod instanceof BigInt) {
-		m = mod;
-	}
+    if ((typeof mod) === 'number' || (typeof mod) === 'string') {
+        m = new BigInt(mod);
+        cleanMod = function(bi) { bi.destroy(); };
+    } else if (mod instanceof BigInt) {
+        m = mod;
+    }
 
-	if ((typeof num) === 'number') {
-		res = BigInt.fromId(bigint.upowm(this.id, num, m.id));
-	} else if ((typeof num) === 'string') {
-		var n = new BigInt(num);
-		res = BigInt.fromId(bigint.bpowm(this.id, n.id, m.id));
-		n.destroy();
-	} else if (num instanceof BigInt) {
-		res = BigInt.fromId(bigint.bpowm(this.id, num.id, m.id));
-	}
+    if ((typeof num) === 'number') {
+        res = BigInt.fromId(bigint.upowm(this.id, num, m.id));
+    } else if ((typeof num) === 'string') {
+        var n = new BigInt(num);
+        res = BigInt.fromId(bigint.bpowm(this.id, n.id, m.id));
+        n.destroy();
+    } else if (num instanceof BigInt) {
+        res = BigInt.fromId(bigint.bpowm(this.id, num.id, m.id));
+    }
 
-	cleanMod(m);
-	return res;
+    cleanMod(m);
+    return res;
 }
 
 BigInt.prototype.pow = function (num) {
