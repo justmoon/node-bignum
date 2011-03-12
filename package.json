@@ -1,6 +1,6 @@
 {
     "name" : "bigint",
-    "version" : "0.1.0",
+    "version" : "0.2.0",
     "description" : "Arbitrary-precision integer arithmetic using libgmp",
     "main" : "./index.js",
     "repository" : {
@@ -21,9 +21,6 @@
         "name" : "James Halliday",
         "email" : "mail@substack.net",
         "url" : "http://substack.net"
-    },
-    "dependencies" : {
-        "node-ffi" : ">=0.2.0"
     },
     "devDependencies" : {
         "expresso" : ">=0.6.0",

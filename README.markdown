@@ -5,8 +5,7 @@ Arbitrary precision integral arithmetic for node.js!
 
 This library wraps around [libgmp](http://gmplib.org/)'s
 [integer functions](http://gmplib.org/manual/Integer-Functions.html#Integer-Functions)
-to perform infinite-precision arithmetic using
-[node-ffi](https://github.com/rbranson/node-ffi).
+to perform infinite-precision arithmetic.
 
 example
 =======
@@ -99,8 +98,9 @@ or if x is a `bigint` instance``
 .destroy()
 ----------
 
-Destroy a `bigint`. This module is using node-ffi so I can't hook onto the
-GC easily. You only need to call this if you're creating bigints in a loop.
+Destroy a `bigint`. This module was previously using node-ffi and the GC hooks
+haven't been hacked in yet. You only need to call this if you're creating
+bigints in a loop. In the future this function will do nothing.
 
 .toNumber()
 -----------
@@ -249,9 +249,9 @@ Return the next prime greater than `this` using
 install
 =======
 
-You'll need the libffi and libgmp sources to compile this package.
+You'll need the libgmp source to compile this package.
 
-    sudo aptitude install lib{ffi,gmp3}-dev
+    sudo aptitude install libgmp3-dev
 
 And then install with [npm](http://npmjs.org):
 
