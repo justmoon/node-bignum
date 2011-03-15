@@ -249,9 +249,13 @@ Return the next prime greater than `this` using
 install
 =======
 
-You'll need the libgmp source to compile this package.
+You'll need the libgmp source to compile this package. Under Debian-based systems,
 
     sudo aptitude install libgmp3-dev
+
+On a Mac with [Homebrew](https://github.com/mxcl/homebrew/),
+
+    brew install gmp
 
 And then install with [npm](http://npmjs.org):
 
