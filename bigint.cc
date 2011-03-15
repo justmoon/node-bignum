@@ -497,6 +497,37 @@ Binvertm(const Arguments& args)
 	return Number::New(bigindex++);
 }
 
+static Handle<Value>
+Bsqrt(const Arguments& args)
+{
+	HandleScope scope;
+
+	REQ_UINT32_ARG(0, i);
+	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*res);
+	mpz_sqrt(*res, *bigints[i]);
+
+	bigints[bigindex] = res;
+
+	return Number::New(bigindex++);
+}
+
+static Handle<Value>
+Broot(const Arguments& args)
+{
+	HandleScope scope;
+
+	REQ_UINT32_ARG(0, i);
+	REQ_UINT64_ARG(1, x);
+	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*res);
+	mpz_root(*res, *bigints[i], x);
+
+	bigints[bigindex] = res;
+
+	return Number::New(bigindex++);
+}
+
 extern "C" void
 init (Handle<Object> t)
 {
@@ -531,4 +562,6 @@ init (Handle<Object> t)
 	NODE_SET_METHOD(t, "bor", Bor);
 	NODE_SET_METHOD(t, "bxor", Bxor);
 	NODE_SET_METHOD(t, "binvertm", Binvertm);
+	NODE_SET_METHOD(t, "bsqrt", Bsqrt);
+	NODE_SET_METHOD(t, "broot", Broot);
 }
