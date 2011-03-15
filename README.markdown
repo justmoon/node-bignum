@@ -5,8 +5,7 @@ Arbitrary precision integral arithmetic for node.js!
 
 This library wraps around [libgmp](http://gmplib.org/)'s
 [integer functions](http://gmplib.org/manual/Integer-Functions.html#Integer-Functions)
-to perform infinite-precision arithmetic using
-[node-ffi](https://github.com/rbranson/node-ffi).
+to perform infinite-precision arithmetic.
 
 example
 =======
@@ -245,6 +244,16 @@ using [mpz_probab_prime](http://gmplib.org/manual/Number-Theoretic-Functions.htm
 
 Return the next prime greater than `this` using
 [mpz_nextprime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
+
+.sqrt()
+-------
+
+Return a new `bigint` that is the square root.  This truncates.
+
+.root(n)
+-------
+
+Return a new `bigint` that is the `nth` root.  This truncates.
 
 install
 =======
