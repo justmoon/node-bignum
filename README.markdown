@@ -246,6 +246,16 @@ using [mpz_probab_prime](http://gmplib.org/manual/Number-Theoretic-Functions.htm
 Return the next prime greater than `this` using
 [mpz_nextprime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
 
+.sqrt()
+-------
+
+Return a new `bigint` that is the square root.  This truncates.
+
+.root(n)
+-------
+
+Return a new `bigint` that is the `nth` root.  This truncates.
+
 install
 =======
 
