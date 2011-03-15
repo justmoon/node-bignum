@@ -2,7 +2,7 @@
 .lock-wscript
 
 # Filetypes
-
+.*.swp
 
 # Paths
 /build

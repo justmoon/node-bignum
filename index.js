@@ -208,6 +208,14 @@ BigInt.prototype.le = function (num) {
     };
 });
 
+BigInt.prototype.sqrt = function() {
+	return BigInt.fromId(bigint['bsqrt'](this.id));
+};
+
+BigInt.prototype.root = function(num) {
+	return BigInt.fromId(bigint['broot'](this.id, num));
+};
+
 BigInt.prototype.rand = function (to) {
     if (this.destroyed) throw new Error('BigInt already destroyed');
     
