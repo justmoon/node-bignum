@@ -51,9 +51,9 @@ using namespace node;
     uint64_t VAR = args[I]->ToInteger()->Value();
 
 
-static std::map<uint32_t, mpz_t *>    bigints;
-static uint32_t                bigindex    = 0;
-static gmp_randstate_t *        randstate    = NULL;
+static std::map<uint32_t, mpz_t *> bigints;
+static uint32_t bigindex = 0;
+static gmp_randstate_t *randstate = NULL;
 
 static Handle<Value>
 FromString(const Arguments& args)
@@ -362,13 +362,15 @@ Brand0(const Arguments& args)
     mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
     mpz_init(*res);
     
-    if(randstate == NULL) {
+    if (randstate == NULL) {
         randstate = (gmp_randstate_t *) malloc(sizeof(gmp_randstate_t));
         gmp_randinit_default(*randstate);
+        unsigned long seed = rand() + (time(NULL) * 1000) + clock();
+        gmp_randseed_ui(*randstate, seed);
     }
     
     mpz_urandomm(*res, *randstate, *bigints[i]);
-
+    
     bigints[bigindex] = res;
     
     return Number::New(bigindex++);
