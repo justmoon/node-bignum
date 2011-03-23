@@ -325,14 +325,6 @@ exports.rand = function () {
     }
 };
 
-exports.destroy = function () {
-    var b = bigint(100);
-    b.destroy();
-    assert.throws(function () {
-        b.destroy();
-    });
-};
-
 exports.primes = function () {
     var ps = { 2 : true, 3 : true, 5 : true, 7 : true };
     for (var i = 0; i <= 10; i++) {

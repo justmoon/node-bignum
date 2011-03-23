@@ -1,17 +1,17 @@
-var bigint = new require('./build/default/bigint');
+var bi = new require('./build/default/bigint')
+  , BigInt = bi.BigInt;
 
 module.exports = BigInt;
 
-function BigInt (num, base) {
-    if (!(this instanceof BigInt)) return new BigInt(num, base);
-    
+BigInt.conditionArgs = function(num, base) {
     if (typeof num !== 'string') num = num.toString(base || 10);
     
     if (num.match(/e\+/)) { // positive exponent
         if (!Number(num).toString().match(/e\+/)) {
-            this.id = bigint.fromString(
-                Math.floor(Number(num)).toString(), 10
-            );
+	    return {
+		    num: Math.floor(Number(num)).toString(),
+		    base: 10
+	    };
         }
         else {
             var pow = Math.ceil(Math.log(num) / Math.log(2));
@@ -21,39 +21,30 @@ function BigInt (num, base) {
             n = n.replace(/\./,'');
             
             for (; i <= pow; i++) n += '0';
-            this.id = bigint.fromString(n, 2);
+	    return {
+		    num: n,
+		    base: 2
+	    };
         }
     }
     else if (num.match(/e\-/)) { // negative exponent
-        this.id = bigint.fromString(
-            Math.floor(Number(num)).toString(),
-            base || 10
-        );
+	return {
+		num: Math.floor(Number(num)).toString(),
+		base: base || 10
+	};
     }
     else {
-        this.id = bigint.fromString(num, base || 10);
+	return {
+		num: num,
+		base: base || 10
+	};
     }
-}
-
-BigInt.fromId = function (id) {
-    var bigi = Object.create(BigInt.prototype);
-    bigi.id = id;
-    return bigi;
 };
 
-BigInt.prototype.destroy = function () {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    bigint.destroy(this.id);
-    this.destroyed = true;
-};
+bi.setJSConditioner(BigInt.conditionArgs);
 
 BigInt.prototype.inspect = function () {
     return '<BigInt ' + this.toString(10) + '>';
-};
-
-BigInt.prototype.toString = function (base) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    return bigint.toString(this.id, base || 10);
 };
 
 BigInt.prototype.toNumber = function () {
@@ -62,33 +53,27 @@ BigInt.prototype.toNumber = function () {
 
 [ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
     BigInt.prototype[op] = function (num) {
-        if (this.destroyed) throw new Error('BigInt already destroyed');
-        
         if (num instanceof BigInt) {
-            return BigInt.fromId(bigint['b'+op](this.id, num.id));
+            return this['b'+op](num);
         }
         else if (typeof num === 'number') {
             if (num >= 0) {
-                return BigInt.fromId(bigint['u'+op](this.id, num));
+                return this['u'+op](num);
             }
             else if (op === 'add') {
-                return BigInt.fromId(bigint.usub(this.id, -num));
+                return this.usub(-num);
             }
             else if (op === 'sub') {
-                return BigInt.fromId(bigint.uadd(this.id, -num));
+                return this.uadd(-num);
             }
             else {
-                var x = new BigInt(num);
-                var res = BigInt.fromId(bigint['b'+op](this.id, x.id));
-                x.destroy();
-                return res;
+                var x = BigInt(num);
+                return this['b'+op](x);
             }
         }
         else if (typeof num === 'string') {
-            var x = new BigInt(num);
-            var res = BigInt.fromId(bigint['b'+op](this.id, x.id));
-            x.destroy();
-            return res;
+            var x = BigInt(num);
+            return this['b'+op](x);
         }
         else {
             throw new TypeError('Unspecified operation for type '
@@ -98,49 +83,37 @@ BigInt.prototype.toNumber = function () {
 });
 
 BigInt.prototype.abs = function () {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    return BigInt.fromId(bigint.babs(this.id));
+    return this.babs();
 };
 
 BigInt.prototype.neg = function () {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    return BigInt.fromId(bigint.bneg(this.id));
+    return this.bneg();
 };
 
 BigInt.prototype.powm = function (num, mod) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    
-    var m, cleanMod = function() {}, res;
+	var m, res;
 
-    if ((typeof mod) === 'number' || (typeof mod) === 'string') {
-        m = new BigInt(mod);
-        cleanMod = function(bi) { bi.destroy(); };
-    } else if (mod instanceof BigInt) {
-        m = mod;
-    }
+	if ((typeof mod) === 'number' || (typeof mod) === 'string') {
+		m = BigInt(mod);
+	} else if (mod instanceof BigInt) {
+		m = mod;
+	}
 
-    if ((typeof num) === 'number') {
-        res = BigInt.fromId(bigint.upowm(this.id, num, m.id));
-    } else if ((typeof num) === 'string') {
-        var n = new BigInt(num);
-        res = BigInt.fromId(bigint.bpowm(this.id, n.id, m.id));
-        n.destroy();
-    } else if (num instanceof BigInt) {
-        res = BigInt.fromId(bigint.bpowm(this.id, num.id, m.id));
-    }
-
-    cleanMod(m);
-    return res;
-}
+	if ((typeof num) === 'number') {
+		return this.upowm(num, m);
+	} else if ((typeof num) === 'string') {
+		var n = BigInt(num);
+		return this.bpowm(n, m);
+	} else if (num instanceof BigInt) {
+		return this.bpowm(num, m);
+	}
+};
 
 BigInt.prototype.pow = function (num) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    
     if (typeof num === 'number') {
         if (num >= 0) {
-            return BigInt.fromId(bigint.upow(this.id, num));
-        }
-        else {
+            return this.upow(num);
+        } else {
             return BigInt.prototype.powm.call(this, num, this);
         }
     }
@@ -152,21 +125,18 @@ BigInt.prototype.pow = function (num) {
 
 BigInt.prototype.cmp = function (num) {
     if (num instanceof BigInt) {
-        return bigint.bcompare(this.id, num.id);
+        return this.bcompare(num);
     }
     else if (typeof num === 'number') {
         if (num < 0) {
-            return bigint.scompare(this.id, num);
-        }
-        else {
-            return bigint.ucompare(this.id, num);
+            return this.scompare(num);
+        } else {
+            return this.ucompare(num);
         }
     }
     else {
-        var x = bigint(num);
-        var res = bigint.bcompare(this.id, x.id);
-        x.destroy();
-        return res;
+        var x = BigInt(num);
+        return this.bcompare(x);
     }
 };
 
@@ -197,69 +167,59 @@ BigInt.prototype.le = function (num) {
 'and or xor'.split(' ').forEach(function (name) {
     BigInt.prototype[name] = function (num) {
         if (num instanceof BigInt) {
-            return BigInt.fromId(bigint['b' + name](this.id, num.id));
-        }
-        else {
-            var x = new BigInt(num);
-            var res = bigint['b' + name](this.id, x.id);
-            x.destroy();
-            return BigInt.fromId(res);
+            return this['b' + name](num);
+        } else {
+            var x = BigInt(num);
+            return this['b' + name](x);
         }
     };
 });
 
 BigInt.prototype.sqrt = function() {
-	return BigInt.fromId(bigint['bsqrt'](this.id));
+	return this.bsqrt();
 };
 
 BigInt.prototype.root = function(num) {
-	return BigInt.fromId(bigint['broot'](this.id, num));
+	if (num instanceof BigInt) {
+		return this.broot(num);
+	} else {
+		var x = BigInt(num);
+		return this.broot(num);
+	}
 };
 
 BigInt.prototype.rand = function (to) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
-    
     if (to === undefined) {
         if (this.toString() === '1') {
-            return new BigInt(0);
-        }
-        else {
-            return BigInt.fromId(bigint.brand0(this.id));
+            return BigInt(0);
+        } else {
+            return this.brand0();
         }
     }
     else {
         var x = to instanceof BigInt
             ? to.sub(this)
-            : BigInt.sub(to, this)
-        ;
-        var y = BigInt.fromId(bigint.brand0(x.id));
-        var res = y.add(this);
-        x.destroy();
-        y.destroy();
-        return res;
+            : BigInt(to).sub(this);
+        return x.brand0().add(this);
     }
 };
 
 BigInt.prototype.invertm = function (mod) {
-    if (this.destroyed) throw new Error('BigInt already destroyed');
     if (mod instanceof BigInt) {
-        return BigInt.fromId(bigint.binvertm(this.id, mod.id));
-    }
-    else {
-        var x = bigint(mod);
-        var res = BigInt.fromId(bigint.binvertm(this.id, x.id));
-        x.destroy();
-        return res;
+        return this.binvertm(mod);
+    } else {
+        var x = BigInt(mod);
+        return this.binvertm(x);
     }
 };
 
 BigInt.prototype.probPrime = function (reps) {
-    var n = bigint.probprime(this.id, reps || 10);
+    var n = this.probprime(reps || 10);
     return { 2 : true, 1 : 'maybe', 0 : false }[n];
 };
 
 BigInt.prototype.nextPrime = function () {
-    return BigInt.fromId(bigint.nextprime(this.id));
+    return this.nextprime();
 };
 
 BigInt.fromBuffer = function (buf, opts) {
@@ -297,7 +257,7 @@ BigInt.fromBuffer = function (buf, opts) {
         );
     }
     
-    return new BigInt(
+    return BigInt(
         (order === 'forward' ? hex : hex.reverse()).join(''), 16
     );
 };
@@ -308,8 +268,6 @@ BigInt.prototype.toBuffer = function (opts) {
         
         var abs = this.abs();
         var buf = abs.toBuffer({ size : 1, endian : 'big' });
-        abs.destroy();
-        
         var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length;
         if (buf[0] & 0x80) len ++;
         
@@ -382,7 +340,7 @@ Object.keys(BigInt.prototype).forEach(function (name) {
             return num[name].apply(num, args);
         }
         else {
-            var bigi = new BigInt(num);
+            var bigi = BigInt(num);
             return bigi[name].apply(bigi, args);
         }
     };
