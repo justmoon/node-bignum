@@ -95,13 +95,6 @@ or if x is a `bigint` instance``
 
     x.method(y, z)
 
-.destroy()
-----------
-
-Destroy a `bigint`. This module was previously using node-ffi and the GC hooks
-haven't been hacked in yet. You only need to call this if you're creating
-bigints in a loop. In the future this function will do nothing.
-
 .toNumber()
 -----------
 
