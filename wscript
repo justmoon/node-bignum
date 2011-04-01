@@ -1,3 +1,5 @@
+import os
+
 srcdir = '.'
 blddir = 'build'
 VERSION = '0.0.1'
@@ -15,3 +17,9 @@ def build(bld):
     obj.target = 'bigint'
     obj.source = 'bigint.cc'
     obj.cxxflags = ["-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
+    obj.includes = """
+      %s/include
+      /opt/local/include
+      /usr/local/include
+      /usr/include
+    """ % os.getenv('PREFIX')
