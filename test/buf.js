@@ -5,9 +5,17 @@ var put = require('put');
 exports.buf_be = function () {
     var buf1 = new Buffer([1,2,3,4]);
     var num = bigint.fromBuffer(buf1, { size : 4 }).toNumber();
+    assert.eql(
+        num,
+        1*Math.pow(256, 3)
+        + 2 * Math.pow(256, 2)
+        + 3 * 256
+        + 4
+    );
+    
     var buf2 = put().word32be(num).buffer();
     assert.eql(buf1, buf2, 
-        [].slice.call(buf1) + ' != ' + [].slice.call(buf2)
+        '[ ' + [].slice.call(buf1) + ' ] != [ ' + [].slice.call(buf2) + ' ]'
     );
 };
 

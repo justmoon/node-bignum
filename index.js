@@ -298,9 +298,6 @@ BigInt.prototype.toBuffer = function (opts) {
     }
     
     if (!opts) opts = {};
-    var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
-        || opts.order || 'forward'
-    ;
     
     var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
         || opts.endian || 'big'
@@ -323,8 +320,7 @@ BigInt.prototype.toBuffer = function (opts) {
         .filter(function (s) { return s.length > 0 })
     ;
     
-    (order === 'forward' ? hx : hx.reverse())
-    .forEach(function (chunk, i) {
+    hx.forEach(function (chunk, i) {
         for (var j = 0; j < size; j++) {
             var ix = i * size + (endian === 'big' ? j : size - j - 1);
             buf[ix] = parseInt(chunk.slice(j*2,j*2+2), 16);
