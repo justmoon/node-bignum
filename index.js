@@ -1,5 +1,5 @@
-var bi = new require('./build/default/bigint')
-  , BigInt = bi.BigInt;
+var bi = new require('./build/default/bigint');
+var BigInt = bi.BigInt;
 
 module.exports = BigInt;
 
@@ -8,10 +8,10 @@ BigInt.conditionArgs = function(num, base) {
     
     if (num.match(/e\+/)) { // positive exponent
         if (!Number(num).toString().match(/e\+/)) {
-	    return {
-		    num: Math.floor(Number(num)).toString(),
-		    base: 10
-	    };
+        return {
+            num: Math.floor(Number(num)).toString(),
+            base: 10
+        };
         }
         else {
             var pow = Math.ceil(Math.log(num) / Math.log(2));
@@ -21,23 +21,23 @@ BigInt.conditionArgs = function(num, base) {
             n = n.replace(/\./,'');
             
             for (; i <= pow; i++) n += '0';
-	    return {
-		    num: n,
-		    base: 2
-	    };
+        return {
+            num: n,
+            base: 2
+        };
         }
     }
     else if (num.match(/e\-/)) { // negative exponent
-	return {
-		num: Math.floor(Number(num)).toString(),
-		base: base || 10
-	};
+        return {
+            num: Math.floor(Number(num)).toString(),
+            base: base || 10
+        };
     }
     else {
-	return {
-		num: num,
-		base: base || 10
-	};
+        return {
+            num: num,
+            base: base || 10
+        };
     }
 };
 
@@ -91,29 +91,30 @@ BigInt.prototype.neg = function () {
 };
 
 BigInt.prototype.powm = function (num, mod) {
-	var m, res;
+    var m, res;
 
-	if ((typeof mod) === 'number' || (typeof mod) === 'string') {
-		m = BigInt(mod);
-	} else if (mod instanceof BigInt) {
-		m = mod;
-	}
+    if ((typeof mod) === 'number' || (typeof mod) === 'string') {
+        m = BigInt(mod);
+    } else if (mod instanceof BigInt) {
+        m = mod;
+    }
 
-	if ((typeof num) === 'number') {
-		return this.upowm(num, m);
-	} else if ((typeof num) === 'string') {
-		var n = BigInt(num);
-		return this.bpowm(n, m);
-	} else if (num instanceof BigInt) {
-		return this.bpowm(num, m);
-	}
+    if ((typeof num) === 'number') {
+        return this.upowm(num, m);
+    } else if ((typeof num) === 'string') {
+        var n = BigInt(num);
+        return this.bpowm(n, m);
+    } else if (num instanceof BigInt) {
+        return this.bpowm(num, m);
+    }
 };
 
 BigInt.prototype.pow = function (num) {
     if (typeof num === 'number') {
         if (num >= 0) {
             return this.upow(num);
-        } else {
+        }
+        else {
             return BigInt.prototype.powm.call(this, num, this);
         }
     }
@@ -130,7 +131,8 @@ BigInt.prototype.cmp = function (num) {
     else if (typeof num === 'number') {
         if (num < 0) {
             return this.scompare(num);
-        } else {
+        }
+        else {
             return this.ucompare(num);
         }
     }
@@ -168,7 +170,8 @@ BigInt.prototype.le = function (num) {
     BigInt.prototype[name] = function (num) {
         if (num instanceof BigInt) {
             return this['b' + name](num);
-        } else {
+        }
+        else {
             var x = BigInt(num);
             return this['b' + name](x);
         }
@@ -176,23 +179,25 @@ BigInt.prototype.le = function (num) {
 });
 
 BigInt.prototype.sqrt = function() {
-	return this.bsqrt();
+    return this.bsqrt();
 };
 
 BigInt.prototype.root = function(num) {
-	if (num instanceof BigInt) {
-		return this.broot(num);
-	} else {
-		var x = BigInt(num);
-		return this.broot(num);
-	}
+    if (num instanceof BigInt) {
+        return this.broot(num);
+    }
+    else {
+        var x = BigInt(num);
+        return this.broot(num);
+    }
 };
 
 BigInt.prototype.rand = function (to) {
     if (to === undefined) {
         if (this.toString() === '1') {
             return BigInt(0);
-        } else {
+        }
+        else {
             return this.brand0();
         }
     }
@@ -207,7 +212,8 @@ BigInt.prototype.rand = function (to) {
 BigInt.prototype.invertm = function (mod) {
     if (mod instanceof BigInt) {
         return this.binvertm(mod);
-    } else {
+    }
+    else {
         var x = BigInt(mod);
         return this.binvertm(x);
     }
@@ -224,9 +230,6 @@ BigInt.prototype.nextPrime = function () {
 
 BigInt.fromBuffer = function (buf, opts) {
     if (!opts) opts = {};
-    var order = { 1 : 'forward', '-1' : 'backward' }[opts.order]
-        || opts.order || 'forward'
-    ;
     
     var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
         || opts.endian || 'big'
@@ -257,9 +260,7 @@ BigInt.fromBuffer = function (buf, opts) {
         );
     }
     
-    return BigInt(
-        (order === 'forward' ? hex : hex.reverse()).join(''), 16
-    );
+    return BigInt(hex.join(''), 16);
 };
 
 BigInt.prototype.toBuffer = function (opts) {
