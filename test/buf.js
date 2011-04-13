@@ -13,37 +13,15 @@ exports.buf_be = function () {
 
 exports.buf_le = function () {
     var buf1 = new Buffer([1,2,3,4]);
-    var num = bigint.fromBuffer(buf1, { size : 4, endian : 'little' })
-        .toNumber();
-    var buf2 = put().word32le(num).buffer();
-    assert.eql(buf1, buf2);
-};
-
-exports.buf_le_rev = function () {
-    var buf = new Buffer([1,2,3,4]);
-    var bufRev = new Buffer([3,4,1,2]);
-    
-    var num = bigint.fromBuffer(buf, {
-        size : 2,
-        endian : 'little',
-    }).toNumber();
-    
-    var numRev = bigint.fromBuffer(bufRev, {
-        size : 2,
-        endian : 'little',
-        order : 'backward',
-    }).toNumber();
-    
-    assert.eql(num, numRev);
-    
-    var bufPut = put()
-        .word16le(Math.floor(num / 256 / 256))
-        .word16le(num % (256 * 256))
-        .buffer()
+    var num = bigint
+        .fromBuffer(buf1, { size : 4, endian : 'little' })
+        .toNumber()
     ;
-    assert.eql(
-        buf, bufPut,
-        [].slice.call(buf) + ' != ' + [].slice.call(bufPut)
+    var buf2 = put().word32le(num).buffer();
+    assert.eql(buf1, buf2,
+        '[ ' +  [].join.call(buf1, ',')
+            + ' ] != [ '
+        + [].join.call(buf2, ',') + ' ]'
     );
 };
 

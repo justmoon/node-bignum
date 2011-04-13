@@ -1,5 +1,5 @@
-var bi = new require('./build/default/bigint');
-var BigInt = bi.BigInt;
+var cc = new require('./build/default/bigint');
+var BigInt = cc.BigInt;
 
 module.exports = BigInt;
 
@@ -12,36 +12,36 @@ BigInt.conditionArgs = function(num, base) {
             num: Math.floor(Number(num)).toString(),
             base: 10
         };
-        }
-        else {
-            var pow = Math.ceil(Math.log(num) / Math.log(2));
-            var n = (num / Math.pow(2, pow)).toString(2)
-                .replace(/^0/,'');
-            var i = n.length - n.indexOf('.');
-            n = n.replace(/\./,'');
-            
-            for (; i <= pow; i++) n += '0';
-        return {
-            num: n,
-            base: 2
-        };
+    }
+    else {
+        var pow = Math.ceil(Math.log(num) / Math.log(2));
+        var n = (num / Math.pow(2, pow)).toString(2)
+            .replace(/^0/,'');
+        var i = n.length - n.indexOf('.');
+        n = n.replace(/\./,'');
+        
+        for (; i <= pow; i++) n += '0';
+           return {
+               num : n,
+               base : 2,
+           };
         }
     }
     else if (num.match(/e\-/)) { // negative exponent
         return {
-            num: Math.floor(Number(num)).toString(),
-            base: base || 10
+            num : Math.floor(Number(num)).toString(),
+            base : base || 10
         };
     }
     else {
         return {
-            num: num,
-            base: base || 10
+            num : num,
+            base : base || 10,
         };
     }
 };
 
-bi.setJSConditioner(BigInt.conditionArgs);
+cc.setJSConditioner(BigInt.conditionArgs);
 
 BigInt.prototype.inspect = function () {
     return '<BigInt ' + this.toString(10) + '>';
@@ -95,16 +95,19 @@ BigInt.prototype.powm = function (num, mod) {
 
     if ((typeof mod) === 'number' || (typeof mod) === 'string') {
         m = BigInt(mod);
-    } else if (mod instanceof BigInt) {
+    }
+    else if (mod instanceof BigInt) {
         m = mod;
     }
-
+    
     if ((typeof num) === 'number') {
         return this.upowm(num, m);
-    } else if ((typeof num) === 'string') {
+    }
+    else if ((typeof num) === 'string') {
         var n = BigInt(num);
         return this.bpowm(n, m);
-    } else if (num instanceof BigInt) {
+    }
+    else if (num instanceof BigInt) {
         return this.bpowm(num, m);
     }
 };
