@@ -203,11 +203,14 @@ Handle<Value>
 BigInt::New(const Arguments& args)
 {
 	if(!args.IsConstructCall()) {
-		Handle<Value> newArgs[args.Length()];
-		for(int i = 0; i < args.Length(); i++) {
+		int len = args.Length();
+		Handle<Value>* newArgs = new Handle<Value>[len];
+		for(int i = 0; i < len; i++) {
 			newArgs[i] = args[i];
 		}
-		return constructor_template->GetFunction()->NewInstance(args.Length(), newArgs);
+		Handle<Value> newInst = constructor_template->GetFunction()->NewInstance(len, newArgs);
+		delete[] newArgs;
+		return newInst;
 	}
 	HandleScope scope;
 	BigInt *bigint;
@@ -217,9 +220,10 @@ BigInt::New(const Arguments& args)
 		mpz_t *num = (mpz_t *) External::Unwrap(args[0]);
 		bigint = new BigInt(num);
 	} else {
+		int len = args.Length();
 		Local<Object> ctx = Local<Object>::New(Object::New());
-		Handle<Value> newArgs[args.Length()];
-		for(int i = 0; i < args.Length(); i++) {
+		Handle<Value>* newArgs = new Handle<Value>[len];
+		for(int i = 0; i < len; i++) {
 			newArgs[i] = args[i];
 		}
 		Local<Value> obj = js_conditioner->Call(ctx, args.Length(), newArgs);
@@ -228,6 +232,7 @@ BigInt::New(const Arguments& args)
 		base = obj->ToObject()->Get(String::NewSymbol("base"))->ToNumber()->Value();
 
 		bigint = new BigInt(str, base);
+		delete[] newArgs;
 	}
 
 	bigint->Wrap(args.This());
