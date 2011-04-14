@@ -1,6 +1,6 @@
 {
     "name" : "bigint",
-    "version" : "0.3.2",
+    "version" : "0.3.3",
     "description" : "Arbitrary-precision integer arithmetic using libgmp",
     "main" : "./index.js",
     "repository" : {
