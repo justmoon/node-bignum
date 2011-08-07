@@ -6,7 +6,10 @@ exports.rand = function () {
         assert.fail('never executed');
     }, 5000);
     
-    var cmd = 'node -e \'require("bigint").rand(1000).toString()\'';
+    var cmd = 'node -e \'require('
+        + JSON.stringify(__dirname + '/../')
+        + ').rand(1000).toString()\''
+    ;
     exec(cmd, function (err1, r1) {
         exec(cmd, function (err2, r2) {
             clearTimeout(to);
