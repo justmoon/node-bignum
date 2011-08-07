@@ -249,6 +249,18 @@ Return a new `bigint` that is the square root.  This truncates.
 
 Return a new `bigint` that is the `nth` root.  This truncates.
 
+.shiftLeft(n)
+-------
+
+Return a new `bigint` that is the `2^n` multiple. Equivalent of the <<
+operator.
+
+.shiftRight(n)
+-------
+
+Return a new `bigint` of the value integer divided by
+`2^n`. Equivalent of the >> operator.
+
 install
 =======
 
