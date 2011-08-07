@@ -127,6 +127,36 @@ BigInt.prototype.pow = function (num) {
     }
 };
 
+BigInt.prototype.shiftLeft = function (num) {
+    if (typeof num === 'number') {
+        if (num >= 0) {
+            return this.umul2exp(num);
+        }
+        else {
+            return this.shiftRight(-num);
+        }
+    }
+    else {
+        var x = parseInt(num.toString(), 10);
+        return BigInt.prototype.shiftLeft.call(this, x);
+    }
+};
+
+BigInt.prototype.shiftRight = function (num) {
+    if (typeof num === 'number') {
+        if (num >= 0) {
+            return this.udiv2exp(num);
+        }
+        else {
+            return this.shiftLeft(-num);
+        }
+    }
+    else {
+        var x = parseInt(num.toString(), 10);
+        return BigInt.prototype.shiftRight.call(this, x);
+    }
+};
+
 BigInt.prototype.cmp = function (num) {
     if (num instanceof BigInt) {
         return this.bcompare(num);

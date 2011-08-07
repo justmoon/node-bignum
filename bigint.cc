@@ -82,6 +82,8 @@ class BigInt : ObjectWrap {
 		static Handle<Value> Usub(const Arguments& args);
 		static Handle<Value> Umul(const Arguments& args);
 		static Handle<Value> Udiv(const Arguments& args);
+		static Handle<Value> Umul_2exp(const Arguments& args);
+		static Handle<Value> Udiv_2exp(const Arguments& args);
 		static Handle<Value> Babs(const Arguments& args);
 		static Handle<Value> Bneg(const Arguments& args);
 		static Handle<Value> Bmod(const Arguments& args);
@@ -132,6 +134,8 @@ void BigInt::Initialize(v8::Handle<v8::Object> target) {
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "usub", Usub);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "umul", Umul);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "udiv", Udiv);
+	NODE_SET_PROTOTYPE_METHOD(constructor_template, "umul2exp", Umul_2exp);
+	NODE_SET_PROTOTYPE_METHOD(constructor_template, "udiv2exp", Udiv_2exp);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "babs", Babs);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "bneg", Bneg);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "bmod", Bmod);
@@ -383,6 +387,38 @@ BigInt::Udiv(const Arguments& args)
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
 	mpz_div_ui(*res, *bigint->bigint_, x);
+	
+	WRAP_RESULT(res, result);
+
+	return scope.Close(result);
+}
+
+Handle<Value>
+BigInt::Umul_2exp(const Arguments& args)
+{
+	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	HandleScope scope;
+
+	REQ_UINT64_ARG(0, x);
+	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*res);
+	mpz_mul_2exp(*res, *bigint->bigint_, x);
+	
+	WRAP_RESULT(res, result);
+
+	return scope.Close(result);
+}
+
+Handle<Value>
+BigInt::Udiv_2exp(const Arguments& args)
+{
+	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	HandleScope scope;
+
+	REQ_UINT64_ARG(0, x);
+	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*res);
+	mpz_div_2exp(*res, *bigint->bigint_, x);
 	
 	WRAP_RESULT(res, result);
 
