@@ -387,6 +387,16 @@ exports.invertm = function () {
     assert.eql(kinv.toString(16), '2784e3d672d972a74e22c67f4f4f726ecc751efa');
 };
 
+exports.shift = function () {
+    assert.eql(bigint(37).shiftLeft(2).toString(), (37 << 2).toString()); // 148
+    assert.eql(bigint(37).shiftRight(2).toString(), (37 >> 2).toString()); // 9
+    
+    assert.equal(
+        bigint(2).pow(Math.pow(2,10)).shiftRight(4).toString(),
+        bigint(2).pow(Math.pow(2,10)).div(16).toString()
+    );
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {
