@@ -6,7 +6,6 @@
 
 #include <v8.h>
 #include <node.h>
-#include <node_events.h>
 #include <gmp.h>
 #include <map>
 #include <utility>
