@@ -1,4 +1,4 @@
-var cc = new require('./build/default/bigint');
+var cc = new require('./build/Release/bigint');
 var BigInt = cc.BigInt;
 
 module.exports = BigInt;
