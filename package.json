@@ -27,14 +27,12 @@
         "binary" : ">=0.1.7",
         "put" : ">=0.0.5"
     },
-    "scripts" : {
-        "test" : "expresso"
-    },
     "license" : "MIT/X11",
     "engine" : {
         "node" : ">=0.2.0"
     },
     "scripts" : {
-        "install" : "node-waf configure build"
+        "install" : "node-waf configure build",
+        "test" : "expresso"
     }
 }
