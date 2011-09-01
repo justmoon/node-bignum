@@ -1,4 +1,10 @@
-var cc = new require('./build/Release/bigint');
+try {
+    // node.js versions < 0.5.5
+    var cc = new require('./build/default/bigint');
+} catch(e) {
+    // node.js versions >= 0.5.5
+    var cc = new require('./build/Release/bigint');
+}
 var BigInt = cc.BigInt;
 
 module.exports = BigInt;
