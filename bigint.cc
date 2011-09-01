@@ -231,6 +231,10 @@ BigInt::New(const Arguments& args)
 		}
 		Local<Value> obj = js_conditioner->Call(ctx, args.Length(), newArgs);
 
+		if(!*obj) {
+			return ThrowException(Exception::Error(String::New("Invalid type passed to bigint constructor")));
+		}
+
 		String::Utf8Value str(obj->ToObject()->Get(String::NewSymbol("num"))->ToString());
 		base = obj->ToObject()->Get(String::NewSymbol("base"))->ToNumber()->Value();
 

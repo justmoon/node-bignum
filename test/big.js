@@ -20,6 +20,9 @@ exports.create = function () {
     }
     
     assert.eql(bigint('1.23e-45').toString(), '0');
+
+    assert.throws(function() { bigint(undefined); });
+    assert.throws(function() { bigint(null); });
 };
 
 exports.add = function () {

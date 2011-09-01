@@ -24,7 +24,8 @@
     },
     "devDependencies" : {
         "expresso" : ">=0.6.0",
-        "binary" : ">=0.1.7"
+        "binary" : ">=0.1.7",
+        "put" : ">=0.0.5"
     },
     "scripts" : {
         "test" : "expresso"
