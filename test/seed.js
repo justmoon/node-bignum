@@ -17,11 +17,17 @@ exports.rand = function () {
             assert.ok(!err1);
             assert.ok(!err2);
             
-            assert.ok(r1.match(/^\d+\n$/));
-            assert.ok(r2.match(/^\d+\n$/));
+            assert.ok(
+                r1.match(/^\d+\n/),
+                JSON.stringify(r1) + ' is not an integer'
+            );
+            assert.ok(
+                r2.match(/^\d+\n/),
+                JSON.stringify(r2) + ' is not an integer'
+            );
             
-            var n1 = parseInt(r1, 10);
-            var n2 = parseInt(r2, 10);
+            var n1 = parseInt(r1.split('\n')[0], 10);
+            var n2 = parseInt(r2.split('\n')[0], 10);
             
             assert.ok(n1 >= 0, 'n1 >= 0');
             assert.ok(n2 >= 0, 'n2 >= 0');
