@@ -400,6 +400,16 @@ exports.shift = function () {
     );
 };
 
+exports.mod = function () {
+    assert.eql(bigint(55555).mod(2).toString(), '1');
+    assert.eql(
+        bigint('1234567').mod(
+            bigint('4321')
+        ).toNumber(), 
+        1234567 % 4321
+    );
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {

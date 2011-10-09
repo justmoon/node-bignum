@@ -118,6 +118,29 @@ BigInt.prototype.powm = function (num, mod) {
     }
 };
 
+BigInt.prototype.mod = function (num, mod) {
+    var m, res;
+    
+    if ((typeof mod) === 'number' || (typeof mod) === 'string') {
+        m = BigInt(mod);
+    }
+    else if (mod instanceof BigInt) {
+        m = mod;
+    }
+    
+    if ((typeof num) === 'number') {
+        return this.umod(num, m);
+    }
+    else if ((typeof num) === 'string') {
+        var n = BigInt(num);
+        return this.bmod(n, m);
+    }
+    else if (num instanceof BigInt) {
+        return this.bmod(num, m);
+    }
+};
+
+
 BigInt.prototype.pow = function (num) {
     if (typeof num === 'number') {
         if (num >= 0) {
