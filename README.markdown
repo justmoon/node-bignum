@@ -195,6 +195,12 @@ Return a new `bigint` with the instance value bitwise inclusive-OR (|)-ed with
 Return a new `bigint` with the instance value bitwise exclusive-OR (^)-ed with
 `n`.
 
+.mod(n)
+-------
+
+Return a new `bigint` with the instance value modulo `n`.
+
+`m`.
 .pow(n)
 -------
 
