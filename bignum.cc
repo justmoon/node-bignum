@@ -54,10 +54,36 @@ using namespace std;
 	Handle<Value> arg[1] = { External::New(*RES) };				\
 	Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
 
+class AutoBN_CTX
+{
+protected:
+  BN_CTX* ctx;
+  BN_CTX* operator=(BN_CTX* ctx_new) { return ctx = ctx_new; }
+
+public:
+  AutoBN_CTX()
+  {
+    ctx = BN_CTX_new();
+    if (ctx == NULL)
+      throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned NULL");
+  }
+
+  ~AutoBN_CTX()
+  {
+    if (ctx != NULL)
+      BN_CTX_free(ctx);
+  }
+
+  operator BN_CTX*() { return ctx; }
+  BN_CTX& operator*() { return *ctx; }
+  BN_CTX** operator&() { return &ctx; }
+  bool operator!() { return (ctx == NULL); }
+};
+
 class BigNum : ObjectWrap {
 	public:
 		static void Initialize(Handle<Object> target);
-		mpz_t *bignum_;
+		BIGNUM *bignum_;
 		static Persistent<Function> js_conditioner;
 		static void SetJSConditioner(Persistent<Function> constructor);
 
@@ -67,7 +93,7 @@ class BigNum : ObjectWrap {
 		BigNum(const String::Utf8Value& str, uint64_t base);
 		BigNum(uint64_t num);
 		BigNum(int64_t num);
-		BigNum(mpz_t *num);
+		BigNum(BIGNUM *num);
 		BigNum();
 		~BigNum();
 
@@ -161,37 +187,37 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
 
 BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
 {
-	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bignum_);
+	bignum_ = BN_new();
+	BN_init(*bignum_);
 
 	mpz_set_str(*bignum_, *str, base);
 }
 
 BigNum::BigNum (uint64_t num) : ObjectWrap ()
 {
-	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bignum_);
+	bignum_ = BN_new();
+	BN_init(*bignum_);
 
 	mpz_set_ui(*bignum_, num);
 }
 
 BigNum::BigNum (int64_t num) : ObjectWrap ()
 {
-	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bignum_);
+	bignum_ = BN_new();
+	BN_init(*bignum_);
 
 	mpz_set_si(*bignum_, num);
 }
 
-BigNum::BigNum (mpz_t *num) : ObjectWrap ()
+BigNum::BigNum (BIGNUM *num) : ObjectWrap ()
 {
 	bignum_ = num;
 }
 
 BigNum::BigNum () : ObjectWrap ()
 {
-	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bignum_);
+	bignum_ = BN_new();
+	BN_init(*bignum_);
 
 	mpz_set_ui(*bignum_, 0);
 }
@@ -199,7 +225,7 @@ BigNum::BigNum () : ObjectWrap ()
 BigNum::~BigNum ()
 {
 	mpz_clear(*bignum_);
-	free(bignum_);
+	BN_free(bignum_);
 }
 
 Handle<Value>
@@ -220,7 +246,7 @@ BigNum::New(const Arguments& args)
 	uint64_t base;
 
 	if(args[0]->IsExternal()) {
-		mpz_t *num = (mpz_t *) External::Unwrap(args[0]);
+		BIGNUM *num = (BIGNUM *) External::Unwrap(args[0]);
 		bignum = new BigNum(num);
 	} else {
 		int len = args.Length();
@@ -262,7 +288,7 @@ BigNum::ToString(const Arguments& args)
 	char *to = mpz_get_str(0, base, *bignum->bignum_);
 
 	Handle<Value> result = String::New(to);
-	free(to);
+	BN_free(to);
 
 	return scope.Close(result);
 }
@@ -274,8 +300,8 @@ BigNum::Badd(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 
 	mpz_add(*res, *bignum->bignum_, *bi->bignum_);
 
@@ -291,8 +317,8 @@ BigNum::Bsub(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_sub(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -307,8 +333,8 @@ BigNum::Bmul(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_mul(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -323,8 +349,8 @@ BigNum::Bdiv(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_div(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -339,8 +365,8 @@ BigNum::Uadd(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_add_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -355,8 +381,8 @@ BigNum::Usub(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_sub_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -371,8 +397,8 @@ BigNum::Umul(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_mul_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -387,8 +413,8 @@ BigNum::Udiv(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_div_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -403,8 +429,8 @@ BigNum::Umul_2exp(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_mul_2exp(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -419,8 +445,8 @@ BigNum::Udiv_2exp(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_div_2exp(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -434,8 +460,8 @@ BigNum::Babs(const Arguments& args)
 	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_abs(*res, *bignum->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -449,8 +475,8 @@ BigNum::Bneg(const Arguments& args)
 	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_neg(*res, *bignum->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -465,8 +491,8 @@ BigNum::Bmod(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_mod(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -481,8 +507,8 @@ BigNum::Umod(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_mod_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -498,8 +524,8 @@ BigNum::Bpowm(const Arguments& args)
 
 	BigNum *bi1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	BigNum *bi2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_powm(*res, *bignum->bignum_, *bi1->bignum_, *bi2->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -515,8 +541,8 @@ BigNum::Upowm(const Arguments& args)
 
 	REQ_UINT64_ARG(0, x);
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_powm_ui(*res, *bignum->bignum_, x, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
@@ -531,8 +557,8 @@ BigNum::Upow(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_pow_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
@@ -551,8 +577,8 @@ BigNum::Uupow(const Arguments& args)
 
 	REQ_UINT64_ARG(0, x);
 	REQ_UINT64_ARG(1, y);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_ui_pow_ui(*res, x, y);
 	
 	WRAP_RESULT(res, result);
@@ -566,8 +592,8 @@ BigNum::Brand0(const Arguments& args)
 	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	
 	if(randstate == NULL) {
 		randstate = (gmp_randstate_t *) malloc(sizeof(gmp_randstate_t));
@@ -600,8 +626,8 @@ BigNum::Nextprime(const Arguments& args)
 	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_nextprime(*res, *bignum->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -649,8 +675,8 @@ BigNum::Band(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_and(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -665,8 +691,8 @@ BigNum::Bor(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_ior(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -681,8 +707,8 @@ BigNum::Bxor(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_xor(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -697,8 +723,8 @@ BigNum::Binvertm(const Arguments& args)
 	HandleScope scope;
 
 	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_invert(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -712,8 +738,8 @@ BigNum::Bsqrt(const Arguments& args)
 	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_sqrt(*res, *bignum->bignum_);
 
 	WRAP_RESULT(res, result);
@@ -728,8 +754,8 @@ BigNum::Broot(const Arguments& args)
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*res);
+	BIGNUM *res = BN_new();
+	BN_init(*res);
 	mpz_root(*res, *bignum->bignum_, x);
 
 	WRAP_RESULT(res, result);
