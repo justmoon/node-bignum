@@ -14,8 +14,8 @@ def configure(conf):
 
 def build(bld):
     obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
-    obj.target = 'bigint'
-    obj.source = 'bigint.cc'
+    obj.target = 'bignum'
+    obj.source = 'bignum.cc'
     obj.cxxflags = ["-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
     obj.includes = """
       %s/include

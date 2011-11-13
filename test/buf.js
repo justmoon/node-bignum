@@ -1,10 +1,10 @@
 var assert = require('assert');
-var bigint = require('../');
+var bignum = require('../');
 var put = require('put');
 
 exports.buf_be = function () {
     var buf1 = new Buffer([1,2,3,4]);
-    var num = bigint.fromBuffer(buf1, { size : 4 }).toNumber();
+    var num = bignum.fromBuffer(buf1, { size : 4 }).toNumber();
     assert.eql(
         num,
         1*Math.pow(256, 3)
@@ -21,7 +21,7 @@ exports.buf_be = function () {
 
 exports.buf_le = function () {
     var buf1 = new Buffer([1,2,3,4]);
-    var num = bigint
+    var num = bignum
         .fromBuffer(buf1, { size : 4, endian : 'little' })
         .toNumber()
     ;
@@ -37,11 +37,11 @@ exports.buf_be_le = function () {
     var buf_be = new Buffer([1,2,3,4,5,6,7,8]);
     var buf_le = new Buffer([4,3,2,1,8,7,6,5]);
     
-    var num_be = bigint
+    var num_be = bignum
         .fromBuffer(buf_be, { size : 4, endian : 'big' })
         .toString()
     ;
-    var num_le = bigint
+    var num_le = bignum
         .fromBuffer(buf_le, { size : 4, endian : 'little' })
         .toString()
     ;
@@ -59,11 +59,11 @@ exports.buf_high_bits = function () {
         208,207,206,205
     ]);
     
-    var num_be = bigint
+    var num_be = bignum
         .fromBuffer(buf_be, { size : 4, endian : 'big' })
         .toString()
     ;
-    var num_le = bigint
+    var num_le = bignum
         .fromBuffer(buf_le, { size : 4, endian : 'little' })
         .toString()
     ;
@@ -82,24 +82,24 @@ exports.buf_to_from = function () {
     ];
     
     nums.forEach(function (num) {
-        var b = bigint(num);
+        var b = bignum(num);
         var u = b.toBuffer();
         
         assert.ok(u);
         assert.eql(
-            bigint.fromBuffer(u).toString(),
+            bignum.fromBuffer(u).toString(),
             b.toString()
         );
     });
     
     assert.throws(function () {
-        bigint(-1).toBuffer(); // can't pack negative numbers yet
+        bignum(-1).toBuffer(); // can't pack negative numbers yet
     });
 };
 
 exports.toBuf = function () {
     var buf = new Buffer([ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f ]);
-    var b = bigint(
+    var b = bignum(
         0x0a * 256*256*256*256*256
         + 0x0b * 256*256*256*256
         + 0x0c * 256*256*256
@@ -121,19 +121,19 @@ exports.toBuf = function () {
     );
     
     assert.eql(
-        bigint.fromBuffer(buf).toString(16),
+        bignum.fromBuffer(buf).toString(16),
         b.toString(16)
     );
     
     assert.eql(
-        [].slice.call(bigint(43135012110).toBuffer({
+        [].slice.call(bignum(43135012110).toBuffer({
             endian : 'little', size : 4
         })),
         [ 0x0a, 0x00, 0x00, 0x00, 0x0e, 0x0d, 0x0c, 0x0b ]
     );
     
     assert.eql(
-        [].slice.call(bigint(43135012110).toBuffer({
+        [].slice.call(bignum(43135012110).toBuffer({
             endian : 'big', size : 4
         })),
         [ 0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e ]
@@ -141,7 +141,7 @@ exports.toBuf = function () {
 };
 
 exports.zeroPad = function () {
-    var b = bigint(0x123456);
+    var b = bignum(0x123456);
     
     assert.eql(
         [].slice.call(b.toBuffer({ endian : 'big', size:4 })),
@@ -173,13 +173,13 @@ exports.toMpint = function () {
     };
     
     Object.keys(refs).forEach(function (key) {
-        var buf0 = bigint(key, 16).toBuffer('mpint');
+        var buf0 = bignum(key, 16).toBuffer('mpint');
         var buf1 = refs[key];
         
         assert.eql(
             buf0, buf1,
             buf0.inspect() + ' != ' + buf1.inspect()
-            + ' for bigint(' + key + ')'
+            + ' for bignum(' + key + ')'
         );
     });
 };

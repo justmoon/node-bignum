@@ -1,11 +1,15 @@
-bigint
+bignum
 ======
 
-Arbitrary precision integral arithmetic for node.js!
+Arbitrary precision integral arithmetic for Node.js using
+OpenSSL.
 
-This library wraps around [libgmp](http://gmplib.org/)'s
-[integer functions](http://gmplib.org/manual/Integer-Functions.html#Integer-Functions)
-to perform infinite-precision arithmetic.
+This library is based on
+[node-bigint](https://github.com/substack/node-bigint) by
+[substack](https://github.com/substack), but instead of using libgmp,
+it uses the builtin bignum functionality from OpenSSL. The advantage
+is that OpenSSL is already a soft dependency of Node.js and therefore
+often already installed on systems with Node.js.
 
 example
 =======
@@ -13,9 +17,9 @@ example
 simple.js
 ---------
 
-    var bigint = require('bigint');
+    var bignum = require('bignum');
     
-    var b = bigint('782910138827292261791972728324982')
+    var b = bignum('782910138827292261791972728324982')
         .sub('182373273283402171237474774728373')
         .div(8)
     ;
@@ -23,7 +27,7 @@ simple.js
 
 ***
     $ node simple.js
-    <BigInt 75067108192986261319312244199576>
+    <Bignum 75067108192986261319312244199576>
 
 perfect.js
 ----------
@@ -31,12 +35,12 @@ perfect.js
 Generate the perfect numbers:
 
     // If 2**n-1 is prime, then (2**n-1) * 2**(n-1) is perfect.
-    var bigint = require('bigint');
+    var bignum = require('bignum');
 
     for (var n = 0; n < 100; n++) {
-        var p = bigint.pow(2, n).sub(1);
+        var p = bignum.pow(2, n).sub(1);
         if (p.probPrime(50)) {
-            var perfect = p.mul(bigint.pow(2, n - 1));
+            var perfect = p.mul(bignum.pow(2, n - 1));
             console.log(perfect.toString());
         }
     }
@@ -57,23 +61,23 @@ Generate the perfect numbers:
 methods[0]
 ==========
 
-bigint(n, base=10)
+bignum(n, base=10)
 ------------------
 
-Create a new `bigint` from `n` and a base. `n` can be a string, integer, or
-another `bigint`.
+Create a new `bignum` from `n` and a base. `n` can be a string, integer, or
+another `bignum`.
 
 If you pass in a string you can set the base that string is encoded in.
 
 .toString(base=10)
 ------------------
 
-Print out the `bigint` instance in the requested base as a string.
+Print out the `bignum` instance in the requested base as a string.
 
-bigint.fromBuffer(buf, opts)
+bignum.fromBuffer(buf, opts)
 ----------------------
 
-Create a new `bigint` from a `Buffer`.
+Create a new `bignum` from a `Buffer`.
 
 The default options are:
     {
@@ -89,22 +93,22 @@ methods[1]
 
 For all of the instance methods below you can write either
 
-    bigint.method(x, y, z)
+    bignum.method(x, y, z)
 
-or if x is a `bigint` instance``
+or if x is a `bignum` instance``
 
     x.method(y, z)
 
 .toNumber()
 -----------
 
-Turn a `bigint` into a `Number`. If the `bigint` is too big you'll lose
+Turn a `bignum` into a `Number`. If the `bignum` is too big you'll lose
 precision or you'll get ±`Infinity`.
 
 .toBuffer(opts)
 -------------
 
-Return a new `Buffer` with the data from the `bigint`.
+Return a new `Buffer` with the data from the `bignum`.
 
 The default options are:
     {
@@ -118,32 +122,32 @@ Note that endian doesn't matter when size = 1.
 .add(n)
 -------
 
-Return a new `bigint` containing the instance value plus `n`.
+Return a new `bignum` containing the instance value plus `n`.
 
 .sub(n)
 -------
 
-Return a new `bigint` containing the instance value minus `n`.
+Return a new `bignum` containing the instance value minus `n`.
 
 .mul(n)
 -------
 
-Return a new `bigint` containing the instance value multiplied by `n`.
+Return a new `bignum` containing the instance value multiplied by `n`.
 
 .div(n)
 -------
 
-Return a new `bigint` containing the instance value integrally divided by `n`.
+Return a new `bignum` containing the instance value integrally divided by `n`.
 
 .abs()
 ------
 
-Return a new `bigint` with the absolute value of the instance.
+Return a new `bignum` with the absolute value of the instance.
 
 .neg()
 ------
 
-Return a new `bigint` with the negative of the instance value.
+Return a new `bignum` with the negative of the instance value.
 
 .cmp(n)
 -------
@@ -181,35 +185,35 @@ Return a boolean: whether the instance value is less than or equal to n
 .and(n)
 -------
 
-Return a new `bigint` with the instance value bitwise AND (&)-ed with `n`.
+Return a new `bignum` with the instance value bitwise AND (&)-ed with `n`.
 
 .or(n)
 ------
 
-Return a new `bigint` with the instance value bitwise inclusive-OR (|)-ed with
+Return a new `bignum` with the instance value bitwise inclusive-OR (|)-ed with
 `n`.
 
 .xor(n)
 -------
 
-Return a new `bigint` with the instance value bitwise exclusive-OR (^)-ed with
+Return a new `bignum` with the instance value bitwise exclusive-OR (^)-ed with
 `n`.
 
 .mod(n)
 -------
 
-Return a new `bigint` with the instance value modulo `n`.
+Return a new `bignum` with the instance value modulo `n`.
 
 `m`.
 .pow(n)
 -------
 
-Return a new `bigint` with the instance value raised to the `n`th power.
+Return a new `bignum` with the instance value raised to the `n`th power.
 
 .powm(n, m)
 -----------
 
-Return a new `bigint` with the instance value raised to the `n`th power modulo
+Return a new `bignum` with the instance value raised to the `n`th power modulo
 `m`.
 
 .invertm(m)
@@ -222,16 +226,16 @@ Compute the multiplicative inverse modulo `m`.
 .rand(upperBound)
 -----------------
 
-If `upperBound` is supplied, return a random `bigint` between the instance value
+If `upperBound` is supplied, return a random `bignum` between the instance value
 and `upperBound - 1`, inclusive.
 
-Otherwise, return a random `bigint` between 0 and the instance value - 1,
+Otherwise, return a random `bignum` between 0 and the instance value - 1,
 inclusive.
 
 .probPrime()
 ------------
 
-Return whether the bigint is:
+Return whether the bignum is:
 
 * certainly prime (true)
 * probably prime ('maybe')
@@ -248,36 +252,40 @@ Return the next prime greater than `this` using
 .sqrt()
 -------
 
-Return a new `bigint` that is the square root.  This truncates.
+Return a new `bignum` that is the square root.  This truncates.
 
 .root(n)
 -------
 
-Return a new `bigint` that is the `nth` root.  This truncates.
+Return a new `bignum` that is the `nth` root.  This truncates.
 
 .shiftLeft(n)
 -------
 
-Return a new `bigint` that is the `2^n` multiple. Equivalent of the <<
+Return a new `bignum` that is the `2^n` multiple. Equivalent of the <<
 operator.
 
 .shiftRight(n)
 -------
 
-Return a new `bigint` of the value integer divided by
+Return a new `bignum` of the value integer divided by
 `2^n`. Equivalent of the >> operator.
 
 install
 =======
 
-You'll need the libgmp source to compile this package. Under Debian-based systems,
+You'll need the libssl (OpenSSL) source to compile this package. If
+you compiled Node.js using the official instructions, you'll already
+have it. Otherwise install it using the instructions below.
 
-    sudo aptitude install libgmp3-dev
+Under Debian-based systems,
+
+    sudo aptitude install libssl3-dev
 
 On a Mac with [Homebrew](https://github.com/mxcl/homebrew/),
 
-    brew install gmp
+    brew install openssl
 
 And then install with [npm](http://npmjs.org):
 
-    npm install bigint
+    npm install bignum

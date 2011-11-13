@@ -6,7 +6,7 @@
 
 #include <v8.h>
 #include <node.h>
-#include <gmp.h>
+#include <openssl/bn.h>
 #include <map>
 #include <utility>
 
@@ -54,22 +54,22 @@ using namespace std;
 	Handle<Value> arg[1] = { External::New(*RES) };				\
 	Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
 
-class BigInt : ObjectWrap {
+class BigNum : ObjectWrap {
 	public:
 		static void Initialize(Handle<Object> target);
-		mpz_t *bigint_;
+		mpz_t *bignum_;
 		static Persistent<Function> js_conditioner;
 		static void SetJSConditioner(Persistent<Function> constructor);
 
 	protected:
 		static Persistent<FunctionTemplate> constructor_template;
 
-		BigInt(const String::Utf8Value& str, uint64_t base);
-		BigInt(uint64_t num);
-		BigInt(int64_t num);
-		BigInt(mpz_t *num);
-		BigInt();
-		~BigInt();
+		BigNum(const String::Utf8Value& str, uint64_t base);
+		BigNum(uint64_t num);
+		BigNum(int64_t num);
+		BigNum(mpz_t *num);
+		BigNum();
+		~BigNum();
 
 		static Handle<Value> New(const Arguments& args);
 		static Handle<Value> ToString(const Arguments& args);
@@ -107,22 +107,22 @@ class BigInt : ObjectWrap {
 
 static gmp_randstate_t *		randstate	= NULL;
 
-Persistent<FunctionTemplate> BigInt::constructor_template;
+Persistent<FunctionTemplate> BigNum::constructor_template;
 
-Persistent<Function> BigInt::js_conditioner;
+Persistent<Function> BigNum::js_conditioner;
 
-void BigInt::SetJSConditioner(Persistent<Function> constructor) {
+void BigNum::SetJSConditioner(Persistent<Function> constructor) {
 	js_conditioner = constructor;
 }
 
-void BigInt::Initialize(v8::Handle<v8::Object> target) {
+void BigNum::Initialize(v8::Handle<v8::Object> target) {
 	HandleScope scope;
 	
 	Local<FunctionTemplate> t = FunctionTemplate::New(New);
 	constructor_template = Persistent<FunctionTemplate>::New(t);
 
 	constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
-	constructor_template->SetClassName(String::NewSymbol("BigInt"));
+	constructor_template->SetClassName(String::NewSymbol("BigNum"));
 
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "toString", ToString);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "badd", Badd);
@@ -156,54 +156,54 @@ void BigInt::Initialize(v8::Handle<v8::Object> target) {
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "bsqrt", Bsqrt);
 	NODE_SET_PROTOTYPE_METHOD(constructor_template, "broot", Broot);
 
-	target->Set(String::NewSymbol("BigInt"), constructor_template->GetFunction());
+	target->Set(String::NewSymbol("BigNum"), constructor_template->GetFunction());
 }
 
-BigInt::BigInt (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
+BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
 {
-	bigint_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bigint_);
+	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*bignum_);
 
-	mpz_set_str(*bigint_, *str, base);
+	mpz_set_str(*bignum_, *str, base);
 }
 
-BigInt::BigInt (uint64_t num) : ObjectWrap ()
+BigNum::BigNum (uint64_t num) : ObjectWrap ()
 {
-	bigint_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bigint_);
+	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*bignum_);
 
-	mpz_set_ui(*bigint_, num);
+	mpz_set_ui(*bignum_, num);
 }
 
-BigInt::BigInt (int64_t num) : ObjectWrap ()
+BigNum::BigNum (int64_t num) : ObjectWrap ()
 {
-	bigint_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bigint_);
+	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*bignum_);
 
-	mpz_set_si(*bigint_, num);
+	mpz_set_si(*bignum_, num);
 }
 
-BigInt::BigInt (mpz_t *num) : ObjectWrap ()
+BigNum::BigNum (mpz_t *num) : ObjectWrap ()
 {
-	bigint_ = num;
+	bignum_ = num;
 }
 
-BigInt::BigInt () : ObjectWrap ()
+BigNum::BigNum () : ObjectWrap ()
 {
-	bigint_ = (mpz_t *) malloc(sizeof(mpz_t));
-	mpz_init(*bigint_);
+	bignum_ = (mpz_t *) malloc(sizeof(mpz_t));
+	mpz_init(*bignum_);
 
-	mpz_set_ui(*bigint_, 0);
+	mpz_set_ui(*bignum_, 0);
 }
 
-BigInt::~BigInt ()
+BigNum::~BigNum ()
 {
-	mpz_clear(*bigint_);
-	free(bigint_);
+	mpz_clear(*bignum_);
+	free(bignum_);
 }
 
 Handle<Value>
-BigInt::New(const Arguments& args)
+BigNum::New(const Arguments& args)
 {
 	if(!args.IsConstructCall()) {
 		int len = args.Length();
@@ -216,12 +216,12 @@ BigInt::New(const Arguments& args)
 		return newInst;
 	}
 	HandleScope scope;
-	BigInt *bigint;
+	BigNum *bignum;
 	uint64_t base;
 
 	if(args[0]->IsExternal()) {
 		mpz_t *num = (mpz_t *) External::Unwrap(args[0]);
-		bigint = new BigInt(num);
+		bignum = new BigNum(num);
 	} else {
 		int len = args.Length();
 		Local<Object> ctx = Local<Object>::New(Object::New());
@@ -232,25 +232,25 @@ BigInt::New(const Arguments& args)
 		Local<Value> obj = js_conditioner->Call(ctx, args.Length(), newArgs);
 
 		if(!*obj) {
-			return ThrowException(Exception::Error(String::New("Invalid type passed to bigint constructor")));
+			return ThrowException(Exception::Error(String::New("Invalid type passed to bignum constructor")));
 		}
 
 		String::Utf8Value str(obj->ToObject()->Get(String::NewSymbol("num"))->ToString());
 		base = obj->ToObject()->Get(String::NewSymbol("base"))->ToNumber()->Value();
 
-		bigint = new BigInt(str, base);
+		bignum = new BigNum(str, base);
 		delete[] newArgs;
 	}
 
-	bigint->Wrap(args.This());
+	bignum->Wrap(args.This());
 
 	return scope.Close(args.This());
 }
 
 Handle<Value>
-BigInt::ToString(const Arguments& args)
+BigNum::ToString(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	uint64_t base = 10;
@@ -259,7 +259,7 @@ BigInt::ToString(const Arguments& args)
 		REQ_UINT64_ARG(0, tbase);
 		base = tbase;
 	}
-	char *to = mpz_get_str(0, base, *bigint->bigint_);
+	char *to = mpz_get_str(0, base, *bignum->bignum_);
 
 	Handle<Value> result = String::New(to);
 	free(to);
@@ -268,16 +268,16 @@ BigInt::ToString(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Badd(const Arguments& args)
+BigNum::Badd(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
 
-	mpz_add(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_add(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -285,15 +285,15 @@ BigInt::Badd(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bsub(const Arguments& args)
+BigNum::Bsub(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_sub(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_sub(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 	
@@ -301,15 +301,15 @@ BigInt::Bsub(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bmul(const Arguments& args)
+BigNum::Bmul(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_mul(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_mul(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
 
@@ -317,15 +317,15 @@ BigInt::Bmul(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bdiv(const Arguments& args)
+BigNum::Bdiv(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_div(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_div(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
 
@@ -333,15 +333,15 @@ BigInt::Bdiv(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Uadd(const Arguments& args)
+BigNum::Uadd(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_add_ui(*res, *bigint->bigint_, x);
+	mpz_add_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -349,15 +349,15 @@ BigInt::Uadd(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Usub(const Arguments& args)
+BigNum::Usub(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_sub_ui(*res, *bigint->bigint_, x);
+	mpz_sub_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -365,15 +365,15 @@ BigInt::Usub(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Umul(const Arguments& args)
+BigNum::Umul(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_mul_ui(*res, *bigint->bigint_, x);
+	mpz_mul_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -381,15 +381,15 @@ BigInt::Umul(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Udiv(const Arguments& args)
+BigNum::Udiv(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_div_ui(*res, *bigint->bigint_, x);
+	mpz_div_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -397,15 +397,15 @@ BigInt::Udiv(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Umul_2exp(const Arguments& args)
+BigNum::Umul_2exp(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_mul_2exp(*res, *bigint->bigint_, x);
+	mpz_mul_2exp(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -413,15 +413,15 @@ BigInt::Umul_2exp(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Udiv_2exp(const Arguments& args)
+BigNum::Udiv_2exp(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_div_2exp(*res, *bigint->bigint_, x);
+	mpz_div_2exp(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -429,14 +429,14 @@ BigInt::Udiv_2exp(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Babs(const Arguments& args)
+BigNum::Babs(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_abs(*res, *bigint->bigint_);
+	mpz_abs(*res, *bignum->bignum_);
 	
 	WRAP_RESULT(res, result);
 
@@ -444,14 +444,14 @@ BigInt::Babs(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bneg(const Arguments& args)
+BigNum::Bneg(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_neg(*res, *bigint->bigint_);
+	mpz_neg(*res, *bignum->bignum_);
 	
 	WRAP_RESULT(res, result);
 
@@ -459,15 +459,15 @@ BigInt::Bneg(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bmod(const Arguments& args)
+BigNum::Bmod(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_mod(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_mod(*res, *bignum->bignum_, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
 
@@ -475,15 +475,15 @@ BigInt::Bmod(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Umod(const Arguments& args)
+BigNum::Umod(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_mod_ui(*res, *bigint->bigint_, x);
+	mpz_mod_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -491,16 +491,16 @@ BigInt::Umod(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bpowm(const Arguments& args)
+BigNum::Bpowm(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi1 = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
-	BigInt *bi2 = ObjectWrap::Unwrap<BigInt>(args[1]->ToObject());
+	BigNum *bi1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+	BigNum *bi2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_powm(*res, *bigint->bigint_, *bi1->bigint_, *bi2->bigint_);
+	mpz_powm(*res, *bignum->bignum_, *bi1->bignum_, *bi2->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -508,16 +508,16 @@ BigInt::Bpowm(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Upowm(const Arguments& args)
+BigNum::Upowm(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[1]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_powm_ui(*res, *bigint->bigint_, x, *bi->bigint_);
+	mpz_powm_ui(*res, *bignum->bignum_, x, *bi->bignum_);
 	
 	WRAP_RESULT(res, result);
 	
@@ -525,15 +525,15 @@ BigInt::Upowm(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Upow(const Arguments& args)
+BigNum::Upow(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_pow_ui(*res, *bigint->bigint_, x);
+	mpz_pow_ui(*res, *bignum->bignum_, x);
 	
 	WRAP_RESULT(res, result);
 
@@ -545,7 +545,7 @@ BigInt::Upow(const Arguments& args)
  * prototype method.
  */
 Handle<Value>
-BigInt::Uupow(const Arguments& args)
+BigNum::Uupow(const Arguments& args)
 {
 	HandleScope scope;
 
@@ -561,9 +561,9 @@ BigInt::Uupow(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Brand0(const Arguments& args)
+BigNum::Brand0(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
@@ -576,7 +576,7 @@ BigInt::Brand0(const Arguments& args)
         	gmp_randseed_ui(*randstate, seed);
 	}
 	
-	mpz_urandomm(*res, *randstate, *bigint->bigint_);
+	mpz_urandomm(*res, *randstate, *bignum->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -584,25 +584,25 @@ BigInt::Brand0(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Probprime(const Arguments& args)
+BigNum::Probprime(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 	
 	REQ_UINT32_ARG(0, reps);
 
-	return scope.Close(Number::New(mpz_probab_prime_p(*bigint->bigint_, reps)));
+	return scope.Close(Number::New(mpz_probab_prime_p(*bignum->bignum_, reps)));
 }
 
 Handle<Value>
-BigInt::Nextprime(const Arguments& args)
+BigNum::Nextprime(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_nextprime(*res, *bigint->bigint_);
+	mpz_nextprime(*res, *bignum->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -610,48 +610,48 @@ BigInt::Nextprime(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bcompare(const Arguments& args)
+BigNum::Bcompare(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 	
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 
-	return scope.Close(Number::New(mpz_cmp(*bigint->bigint_, *bi->bigint_)));
+	return scope.Close(Number::New(mpz_cmp(*bignum->bignum_, *bi->bignum_)));
 }
 
 Handle<Value>
-BigInt::Scompare(const Arguments& args)
+BigNum::Scompare(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 	
 	REQ_INT64_ARG(0, x);
 	
-	return scope.Close(Number::New(mpz_cmp_si(*bigint->bigint_, x)));
+	return scope.Close(Number::New(mpz_cmp_si(*bignum->bignum_, x)));
 }
 
 Handle<Value>
-BigInt::Ucompare(const Arguments& args)
+BigNum::Ucompare(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 	
 	REQ_UINT64_ARG(0, x);
 
-	return scope.Close(Number::New(mpz_cmp_ui(*bigint->bigint_, x)));
+	return scope.Close(Number::New(mpz_cmp_ui(*bignum->bignum_, x)));
 }
 
 Handle<Value>
-BigInt::Band(const Arguments& args)
+BigNum::Band(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_and(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_and(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -659,15 +659,15 @@ BigInt::Band(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bor(const Arguments& args)
+BigNum::Bor(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_ior(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_ior(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -675,15 +675,15 @@ BigInt::Bor(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bxor(const Arguments& args)
+BigNum::Bxor(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_xor(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_xor(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -691,15 +691,15 @@ BigInt::Bxor(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Binvertm(const Arguments& args)
+BigNum::Binvertm(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
-	BigInt *bi = ObjectWrap::Unwrap<BigInt>(args[0]->ToObject());
+	BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_invert(*res, *bigint->bigint_, *bi->bigint_);
+	mpz_invert(*res, *bignum->bignum_, *bi->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -707,14 +707,14 @@ BigInt::Binvertm(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Bsqrt(const Arguments& args)
+BigNum::Bsqrt(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_sqrt(*res, *bigint->bigint_);
+	mpz_sqrt(*res, *bignum->bignum_);
 
 	WRAP_RESULT(res, result);
 
@@ -722,15 +722,15 @@ BigInt::Bsqrt(const Arguments& args)
 }
 
 Handle<Value>
-BigInt::Broot(const Arguments& args)
+BigNum::Broot(const Arguments& args)
 {
-	BigInt *bigint = ObjectWrap::Unwrap<BigInt>(args.This());
+	BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 	HandleScope scope;
 
 	REQ_UINT64_ARG(0, x);
 	mpz_t *res = (mpz_t *) malloc(sizeof(mpz_t));
 	mpz_init(*res);
-	mpz_root(*res, *bigint->bigint_, x);
+	mpz_root(*res, *bignum->bignum_, x);
 
 	WRAP_RESULT(res, result);
 
@@ -742,7 +742,7 @@ SetJSConditioner(const Arguments& args)
 {
 	HandleScope scope;
 
-	BigInt::SetJSConditioner(Persistent<Function>::New(Local<Function>::Cast(args[0])));
+	BigNum::SetJSConditioner(Persistent<Function>::New(Local<Function>::Cast(args[0])));
 
 	return Undefined();
 }
@@ -752,6 +752,6 @@ init (Handle<Object> target)
 {
 	HandleScope scope;
 
-	BigInt::Initialize(target);
+	BigNum::Initialize(target);
 	NODE_SET_METHOD(target, "setJSConditioner", SetJSConditioner);
 }
