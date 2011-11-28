@@ -149,7 +149,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
   constructor_template->SetClassName(String::NewSymbol("BigNum"));
 
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "toString", ToString);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "tostring", ToString);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "badd", Badd);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bsub", Bsub);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bmul", Bmul);

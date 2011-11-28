@@ -53,6 +53,19 @@ BigNum.prototype.inspect = function () {
     return '<BigNum ' + this.toString(10) + '>';
 };
 
+BigNum.prototype.toString = function (base) {
+    var value;
+    if (base) {
+        value = this.tostring(base);
+    } else {
+        value = this.tostring();
+    }
+    if (base > 10 && "string" === typeof value) {
+      value = value.toLowerCase();
+    }
+    return value;
+};
+
 BigNum.prototype.toNumber = function () {
     return parseInt(this.toString(), 10);
 };
