@@ -566,10 +566,12 @@ BigNum::Upowm(const Arguments& args)
   BN_set_word(exp, x);
   BIGNUM *res = BN_new();
   BN_init(res);
-  BN_mod_exp(res, bignum->bignum_, bn->bignum_, exp, ctx);
-  
+  BN_mod_exp(res, bignum->bignum_, exp, bn->bignum_, ctx);
+
   WRAP_RESULT(res, result);
-  
+
+  BN_free(exp);
+
   return scope.Close(result); 
 }
 
