@@ -19,6 +19,7 @@ these differences:
 
 - Bignum rounds towards zero for integer divisions, e.g. `10 / -3 = -3`, whereas bigint
   rounds towards negative infinity, e.g. `10 / -3 = -4`.
+- Boolean operations (and, or, xor) are not supported.
 
 example
 =======

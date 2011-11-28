@@ -679,85 +679,25 @@ BigNum::Ucompare(const Arguments& args)
 Handle<Value>
 BigNum::Band(const Arguments& args)
 {
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-
-  BIGNUM *res = BN_new();
-  BN_init(res);
-
-  int length = BN_num_bits(bignum->bignum_);
-  int length2 = BN_num_bits(bi->bignum_);
-  length = length > length2 ? length : length2;
-
-  for (int i = 0; i < length; i++) {
-    if (BN_is_bit_set(bignum->bignum_, i) && BN_is_bit_set(bi->bignum_, i)) {
-      BN_set_bit(res, i);
-    } else {
-      BN_clear_bit(res, i);
-    }
-  }
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
 }
 
 Handle<Value>
 BigNum::Bor(const Arguments& args)
 {
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-
-  BIGNUM *res = BN_new();
-  BN_init(res);
-
-  int length = BN_num_bits(bignum->bignum_);
-  int length2 = BN_num_bits(bi->bignum_);
-  length = length > length2 ? length : length2;
-
-  for (int i = 0; i < length; i++) {
-    if (BN_is_bit_set(bignum->bignum_, i) || BN_is_bit_set(bi->bignum_, i)) {
-      BN_set_bit(res, i);
-    } else {
-      BN_clear_bit(res, i);
-    }
-  }
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
 }
 
 Handle<Value>
 BigNum::Bxor(const Arguments& args)
 {
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-
-  BIGNUM *res = BN_new();
-  BN_init(res);
-
-  int length = BN_num_bits(bignum->bignum_);
-  int length2 = BN_num_bits(bi->bignum_);
-  length = length > length2 ? length : length2;
-
-  for (int i = 0; i < length; i++) {
-    if (BN_is_bit_set(bignum->bignum_, i) ^ BN_is_bit_set(bi->bignum_, i)) {
-      BN_set_bit(res, i);
-    } else {
-      BN_clear_bit(res, i);
-    }
-  }
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
 }
 
 Handle<Value>

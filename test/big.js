@@ -274,6 +274,7 @@ exports.pow = function () {
     );
 };
 
+/*
 exports.and = function () {
     for (var i = -10; i < 10; i++) {
         for (var j = -10; j < 10; j++) {
@@ -315,6 +316,7 @@ exports.xor = function () {
         }
     }
 };
+*/
 
 exports.rand = function () {
     for (var i = 1; i < 1000; i++) {
