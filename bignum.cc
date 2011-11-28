@@ -190,8 +190,10 @@ BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
   switch (base) {
   case 10:
     BN_dec2bn(&bignum_, *str);
+    break;
   case 16:
     BN_hex2bn(&bignum_, *str);
+    break;
   default:
     ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
     return;
@@ -298,8 +300,10 @@ BigNum::ToString(const Arguments& args)
   switch (base) {
   case 10:
     to = BN_bn2dec(bignum->bignum_);
+    break;
   case 16:
     to = BN_bn2hex(bignum->bignum_);
+    break;
   default:
     return ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
   }
