@@ -1,38 +1,41 @@
 {
-    "name" : "bigint",
-    "version" : "0.3.7",
-    "description" : "Arbitrary-precision integer arithmetic using libgmp",
-    "main" : "./index.js",
-    "repository" : {
-        "type" : "git",
-        "url" : "http://github.com/substack/node-bigint.git"
-    },
-    "keywords": [
-        "gmp",
-        "libgmp",
-        "big",
-        "bignum",
-        "bigint",
-        "integer",
-        "arithmetic",
-        "precision"
-    ],
-    "author" : {
-        "name" : "James Halliday",
-        "email" : "mail@substack.net",
-        "url" : "http://substack.net"
-    },
-    "devDependencies" : {
-        "expresso" : ">=0.6.0",
-        "binary" : ">=0.1.7",
-        "put" : ">=0.0.5"
-    },
-    "license" : "MIT/X11",
-    "engine" : {
-        "node" : ">=0.2.0"
-    },
-    "scripts" : {
-        "install" : "node-waf configure build",
-        "test" : "expresso"
-    }
+  "name" : "bignum",
+  "version" : "0.4.0",
+  "description" : "Arbitrary-precision integer arithmetic using OpenSSL",
+  "main" : "./index.js",
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/justmoon/node-bignum.git"
+  },
+  "keywords": [
+    "gmp",
+    "libgmp",
+    "big",
+    "bignum",
+    "bigint",
+    "integer",
+    "arithmetic",
+    "precision"
+  ],
+  "author" : {
+    "name" : "Stefan Thomas",
+    "email" : "justmoon@members.fsf.org",
+    "url" : "http://www.justmoon.net"
+  },
+  "devDependencies" : {
+    "expresso" : ">=0.6.0",
+    "binary" : ">=0.1.7",
+    "put" : ">=0.0.5"
+  },
+  "license" : "MIT/X11",
+  "engine" : {
+    "node" : ">=0.2.0"
+  },
+  "scripts" : {
+    "install" : "node-waf configure build",
+    "test" : "expresso"
+  },
+  "contributors": [
+    "James Halliday <mail@substack.net>"
+  ]
 }
