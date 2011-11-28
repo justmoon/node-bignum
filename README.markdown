@@ -11,6 +11,15 @@ it uses the builtin bignum functionality from OpenSSL. The advantage
 is that OpenSSL is already a soft dependency of Node.js and therefore
 often already installed on systems with Node.js.
 
+differences
+===========
+
+When switching from node-bigint to node-bignum, please be aware of
+these differences:
+
+- Bignum rounds towards zero for integer divisions, e.g. `10 / -3 = -3`, whereas bigint
+  rounds towards negative infinity, e.g. `10 / -3 = -4`.
+
 example
 =======
 

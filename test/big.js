@@ -125,7 +125,8 @@ exports.div = function () {
         for (var j = -10; j < 10; j++) {
             var is = i.toString();
             var js = j.toString();
-            var ks = Math.floor(i / j).toString();
+            var round = ((i/j) < 0) ? Math.ceil : Math.floor;
+            var ks = round(i / j).toString();
             if (ks.match(/^-?\d+$/)) { // ignore exceptions
                 assert.eql(bignum(i).div(j).toString(), ks);
                 assert.eql(bignum(i).div(js).toString(), ks);
