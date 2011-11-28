@@ -169,7 +169,6 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "upow", Upow);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "brand0", Brand0);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "probprime", Probprime);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "nextprime", Nextprime);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bcompare", Bcompare);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "scompare", Scompare);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "ucompare", Ucompare);
@@ -622,15 +621,6 @@ BigNum::Probprime(const Arguments& args)
   REQ_UINT32_ARG(0, reps);
 
   return scope.Close(Number::New(BN_is_prime(bignum->bignum_, reps, NULL, ctx, NULL)));
-}
-
-Handle<Value>
-BigNum::Nextprime(const Arguments& args)
-{
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
-
-  return ThrowException(Exception::Error(String::New("nextPrime is not supported by OpenSSL.")));
 }
 
 Handle<Value>

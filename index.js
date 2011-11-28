@@ -296,11 +296,15 @@ BigNum.prototype.invertm = function (mod) {
 
 BigNum.prototype.probPrime = function (reps) {
     var n = this.probprime(reps || 10);
-    return { 2 : true, 1 : 'maybe', 0 : false }[n];
+    return { 1 : true, 0 : false }[n];
 };
 
 BigNum.prototype.nextPrime = function () {
-    return this.nextprime();
+    var num = this;
+    do {
+        num = num.add(1);
+    } while (!num.probPrime());
+    return num;
 };
 
 BigNum.fromBuffer = function (buf, opts) {
