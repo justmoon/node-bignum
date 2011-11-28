@@ -186,12 +186,22 @@ BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
 {
   bignum_ = NULL;
 
+  const char *cstr = *str;
   switch (base) {
+  case 2:
+    bignum_ = BN_new();
+    BN_init(bignum_);
+    for (int i = 0, l = str.length(); i < l; i++) {
+      if (cstr[l-i-1] != '0') {
+        BN_set_bit(bignum_, i);
+      }
+    }
+    break;
   case 10:
-    BN_dec2bn(&bignum_, *str);
+    BN_dec2bn(&bignum_, cstr);
     break;
   case 16:
-    BN_hex2bn(&bignum_, *str);
+    BN_hex2bn(&bignum_, cstr);
     break;
   default:
     ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
