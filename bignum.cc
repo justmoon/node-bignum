@@ -51,7 +51,7 @@ using namespace std;
   uint64_t VAR = args[I]->ToInteger()->Value();
 
 #define WRAP_RESULT(RES, VAR)                                 \
-  Handle<Value> arg[1] = { External::New(*RES) };             \
+  Handle<Value> arg[1] = { External::New(RES) };              \
   Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
 
 class AutoBN_CTX
@@ -64,8 +64,9 @@ public:
   AutoBN_CTX()
   {
     ctx = BN_CTX_new();
+    // TODO: Handle this error some way that Node.js can catch
     if (ctx == NULL)
-      throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned NULL");
+      throw "AutoBN_CTX : BN_CTX_new() returned NULL";
   }
 
   ~AutoBN_CTX()
@@ -131,8 +132,6 @@ protected:
   static Handle<Value> Broot(const Arguments& args);
 };
 
-static gmp_randstate_t *    randstate = NULL;
-
 Persistent<FunctionTemplate> BigNum::constructor_template;
 
 Persistent<Function> BigNum::js_conditioner;
@@ -168,7 +167,6 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bpowm", Bpowm);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "upowm", Upowm);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "upow", Upow);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "uupow", Uupow);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "brand0", Brand0);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "probprime", Probprime);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "nextprime", Nextprime);
@@ -187,26 +185,38 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
 
 BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
 {
-  bignum_ = BN_new();
-  BN_init(*bignum_);
+  bignum_ = NULL;
 
-  mpz_set_str(*bignum_, *str, base);
+  switch (base) {
+  case 10:
+    BN_dec2bn(&bignum_, *str);
+  case 16:
+    BN_hex2bn(&bignum_, *str);
+  default:
+    ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
+    return;
+  }
 }
 
 BigNum::BigNum (uint64_t num) : ObjectWrap ()
 {
   bignum_ = BN_new();
-  BN_init(*bignum_);
+  BN_init(bignum_);
 
-  mpz_set_ui(*bignum_, num);
+  BN_set_word(bignum_, num);
 }
 
 BigNum::BigNum (int64_t num) : ObjectWrap ()
 {
   bignum_ = BN_new();
-  BN_init(*bignum_);
+  BN_init(bignum_);
 
-  mpz_set_si(*bignum_, num);
+  if (num > 0) {
+    BN_set_word(bignum_, num);
+  } else {
+    BN_set_word(bignum_, -num);
+    BN_set_negative(bignum_, 1);
+  }
 }
 
 BigNum::BigNum (BIGNUM *num) : ObjectWrap ()
@@ -217,15 +227,14 @@ BigNum::BigNum (BIGNUM *num) : ObjectWrap ()
 BigNum::BigNum () : ObjectWrap ()
 {
   bignum_ = BN_new();
-  BN_init(*bignum_);
+  BN_init(bignum_);
 
-  mpz_set_ui(*bignum_, 0);
+  BN_zero(bignum_);
 }
 
 BigNum::~BigNum ()
 {
-  mpz_clear(*bignum_);
-  BN_free(bignum_);
+  BN_clear_free(bignum_);
 }
 
 Handle<Value>
@@ -285,10 +294,18 @@ BigNum::ToString(const Arguments& args)
     REQ_UINT64_ARG(0, tbase);
     base = tbase;
   }
-  char *to = mpz_get_str(0, base, *bignum->bignum_);
+  char *to = NULL;
+  switch (base) {
+  case 10:
+    to = BN_bn2dec(bignum->bignum_);
+  case 16:
+    to = BN_bn2hex(bignum->bignum_);
+  default:
+    return ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
+  }
 
   Handle<Value> result = String::New(to);
-  BN_free(to);
+  free(to);
 
   return scope.Close(result);
 }
@@ -299,11 +316,11 @@ BigNum::Badd(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
+  BN_init(res);
 
-  mpz_add(*res, *bignum->bignum_, *bi->bignum_);
+  BN_add(res, bignum->bignum_, bn->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -316,10 +333,10 @@ BigNum::Bsub(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_sub(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+  BN_sub(res, bignum->bignum_, bn->bignum_);
 
   WRAP_RESULT(res, result);
   
@@ -329,13 +346,14 @@ BigNum::Bsub(const Arguments& args)
 Handle<Value>
 BigNum::Bmul(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_mul(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+  BN_mul(res, bignum->bignum_, bn->bignum_, ctx);
   
   WRAP_RESULT(res, result);
 
@@ -345,13 +363,14 @@ BigNum::Bmul(const Arguments& args)
 Handle<Value>
 BigNum::Bdiv(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_div(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+  BN_div(res, NULL, bignum->bignum_, bi->bignum_, ctx);
   
   WRAP_RESULT(res, result);
 
@@ -365,9 +384,8 @@ BigNum::Uadd(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_add_ui(*res, *bignum->bignum_, x);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_add_word(res, x);
   
   WRAP_RESULT(res, result);
 
@@ -381,9 +399,8 @@ BigNum::Usub(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_sub_ui(*res, *bignum->bignum_, x);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_sub_word(res, x);
   
   WRAP_RESULT(res, result);
 
@@ -397,9 +414,8 @@ BigNum::Umul(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_mul_ui(*res, *bignum->bignum_, x);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_mul_word(res, x);
   
   WRAP_RESULT(res, result);
 
@@ -413,9 +429,8 @@ BigNum::Udiv(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_div_ui(*res, *bignum->bignum_, x);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_div_word(res, x);
   
   WRAP_RESULT(res, result);
 
@@ -430,8 +445,8 @@ BigNum::Umul_2exp(const Arguments& args)
 
   REQ_UINT64_ARG(0, x);
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_mul_2exp(*res, *bignum->bignum_, x);
+  BN_init(res);
+  BN_lshift(res, bignum->bignum_, x);
   
   WRAP_RESULT(res, result);
 
@@ -446,8 +461,8 @@ BigNum::Udiv_2exp(const Arguments& args)
 
   REQ_UINT64_ARG(0, x);
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_div_2exp(*res, *bignum->bignum_, x);
+  BN_init(res);
+  BN_rshift(res, bignum->bignum_, x);
   
   WRAP_RESULT(res, result);
 
@@ -460,9 +475,8 @@ BigNum::Babs(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_abs(*res, *bignum->bignum_);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_set_negative(res, 0);
   
   WRAP_RESULT(res, result);
 
@@ -475,9 +489,8 @@ BigNum::Bneg(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_neg(*res, *bignum->bignum_);
+  BIGNUM *res = BN_dup(bignum->bignum_);
+  BN_set_negative(res, !BN_is_negative(res));
   
   WRAP_RESULT(res, result);
 
@@ -487,13 +500,14 @@ BigNum::Bneg(const Arguments& args)
 Handle<Value>
 BigNum::Bmod(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_mod(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+  BN_div(NULL, res, bignum->bignum_, bn->bignum_, ctx);
   
   WRAP_RESULT(res, result);
 
@@ -508,8 +522,8 @@ BigNum::Umod(const Arguments& args)
 
   REQ_UINT64_ARG(0, x);
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_mod_ui(*res, *bignum->bignum_, x);
+  BN_init(res);
+  BN_set_word(res, BN_mod_word(bignum->bignum_, x));
   
   WRAP_RESULT(res, result);
 
@@ -519,14 +533,15 @@ BigNum::Umod(const Arguments& args)
 Handle<Value>
 BigNum::Bpowm(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BigNum *bi2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
+  BigNum *bn1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_powm(*res, *bignum->bignum_, *bi1->bignum_, *bi2->bignum_);
+  BN_init(res);
+  BN_mod_exp(res, bignum->bignum_, bn1->bignum_, bn2->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -536,14 +551,18 @@ BigNum::Bpowm(const Arguments& args)
 Handle<Value>
 BigNum::Upowm(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
+  BIGNUM *exp = BN_new();
+  BN_init(exp);
+  BN_set_word(exp, x);
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_powm_ui(*res, *bignum->bignum_, x, *bi->bignum_);
+  BN_init(res);
+  BN_mod_exp(res, bignum->bignum_, bn->bignum_, exp, ctx);
   
   WRAP_RESULT(res, result);
   
@@ -553,33 +572,18 @@ BigNum::Upowm(const Arguments& args)
 Handle<Value>
 BigNum::Upow(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
+  BIGNUM *exp = BN_new();
+  BN_init(exp);
+  BN_set_word(exp, x);
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_pow_ui(*res, *bignum->bignum_, x);
+  BN_init(res);
   
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
-}
-
-/* 
- * This makes no sense?  It doesn't act on the object but is a
- * prototype method.
- */
-Handle<Value>
-BigNum::Uupow(const Arguments& args)
-{
-  HandleScope scope;
-
-  REQ_UINT64_ARG(0, x);
-  REQ_UINT64_ARG(1, y);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_ui_pow_ui(*res, x, y);
+  BN_exp(res, bignum->bignum_, exp, ctx);
   
   WRAP_RESULT(res, result);
 
@@ -593,16 +597,9 @@ BigNum::Brand0(const Arguments& args)
   HandleScope scope;
 
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  
-  if (randstate == NULL) {
-    randstate = (gmp_randstate_t *) malloc(sizeof(gmp_randstate_t));
-    gmp_randinit_default(*randstate);
-    unsigned long seed = rand() + (time(NULL) * 1000) + clock();
-          gmp_randseed_ui(*randstate, seed);
-  }
-  
-  mpz_urandomm(*res, *randstate, *bignum->bignum_);
+  BN_init(res);
+
+  BN_rand_range(res, bignum->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -612,12 +609,13 @@ BigNum::Brand0(const Arguments& args)
 Handle<Value>
 BigNum::Probprime(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
   
   REQ_UINT32_ARG(0, reps);
 
-  return scope.Close(Number::New(mpz_probab_prime_p(*bignum->bignum_, reps)));
+  return scope.Close(Number::New(BN_is_prime(bignum->bignum_, reps, NULL, ctx, NULL)));
 }
 
 Handle<Value>
@@ -626,13 +624,7 @@ BigNum::Nextprime(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_nextprime(*res, *bignum->bignum_);
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("nextPrime is not supported by OpenSSL.")));
 }
 
 Handle<Value>
@@ -641,9 +633,9 @@ BigNum::Bcompare(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
   
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 
-  return scope.Close(Number::New(mpz_cmp(*bignum->bignum_, *bi->bignum_)));
+  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn->bignum_)));
 }
 
 Handle<Value>
@@ -651,10 +643,17 @@ BigNum::Scompare(const Arguments& args)
 {
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
-  
+
   REQ_INT64_ARG(0, x);
-  
-  return scope.Close(Number::New(mpz_cmp_si(*bignum->bignum_, x)));
+  BIGNUM *bn = BN_new();
+  if (x > 0) {
+    BN_set_word(bn, x);
+  } else {
+    BN_set_word(bn, -x);
+    BN_set_negative(bn, 1);
+  }
+
+  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn)));
 }
 
 Handle<Value>
@@ -664,8 +663,11 @@ BigNum::Ucompare(const Arguments& args)
   HandleScope scope;
   
   REQ_UINT64_ARG(0, x);
+  BIGNUM *bn = BN_new();
+  BN_init(bn);
+  BN_set_word(bn, x);
 
-  return scope.Close(Number::New(mpz_cmp_ui(*bignum->bignum_, x)));
+  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn)));
 }
 
 Handle<Value>
@@ -675,9 +677,21 @@ BigNum::Band(const Arguments& args)
   HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_and(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+
+  int length = BN_num_bits(bignum->bignum_);
+  int length2 = BN_num_bits(bi->bignum_);
+  length = length > length2 ? length : length2;
+
+  for (int i = 0; i < length; i++) {
+    if (BN_is_bit_set(bignum->bignum_, i) && BN_is_bit_set(bi->bignum_, i)) {
+      BN_set_bit(res, i);
+    } else {
+      BN_clear_bit(res, i);
+    }
+  }
 
   WRAP_RESULT(res, result);
 
@@ -691,9 +705,21 @@ BigNum::Bor(const Arguments& args)
   HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_ior(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+
+  int length = BN_num_bits(bignum->bignum_);
+  int length2 = BN_num_bits(bi->bignum_);
+  length = length > length2 ? length : length2;
+
+  for (int i = 0; i < length; i++) {
+    if (BN_is_bit_set(bignum->bignum_, i) || BN_is_bit_set(bi->bignum_, i)) {
+      BN_set_bit(res, i);
+    } else {
+      BN_clear_bit(res, i);
+    }
+  }
 
   WRAP_RESULT(res, result);
 
@@ -707,9 +733,21 @@ BigNum::Bxor(const Arguments& args)
   HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_xor(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+
+  int length = BN_num_bits(bignum->bignum_);
+  int length2 = BN_num_bits(bi->bignum_);
+  length = length > length2 ? length : length2;
+
+  for (int i = 0; i < length; i++) {
+    if (BN_is_bit_set(bignum->bignum_, i) ^ BN_is_bit_set(bi->bignum_, i)) {
+      BN_set_bit(res, i);
+    } else {
+      BN_clear_bit(res, i);
+    }
+  }
 
   WRAP_RESULT(res, result);
 
@@ -719,13 +757,14 @@ BigNum::Bxor(const Arguments& args)
 Handle<Value>
 BigNum::Binvertm(const Arguments& args)
 {
+  AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_invert(*res, *bignum->bignum_, *bi->bignum_);
+  BN_init(res);
+  BN_mod_inverse(res, bignum->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -738,13 +777,7 @@ BigNum::Bsqrt(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_sqrt(*res, *bignum->bignum_);
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("sqrt is not supported by OpenSSL.")));
 }
 
 Handle<Value>
@@ -753,14 +786,7 @@ BigNum::Broot(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(*res);
-  mpz_root(*res, *bignum->bignum_, x);
-
-  WRAP_RESULT(res, result);
-
-  return scope.Close(result);
+  return ThrowException(Exception::Error(String::New("root is not supported by OpenSSL.")));
 }
 
 static Handle<Value>
