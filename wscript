@@ -9,7 +9,6 @@ def set_options(opt):
 
 def configure(conf):
     conf.check_tool('compiler_cxx')
-    conf.env.append_value('LINKFLAGS', ['-lgmp']);
     conf.check_tool('node_addon')
 
 def build(bld):
