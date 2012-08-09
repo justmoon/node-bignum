@@ -108,7 +108,7 @@ exports.toBuf = function () {
         + 0x0f
     );
     
-    assert.eql(b.toString(16), 'a0b0c0d0e0f');
+    assert.eql(b.toString(16), '0a0b0c0d0e0f');
     
     assert.eql(
         [].slice.call(b.toBuffer({ endian : 'big', size : 2 })),
