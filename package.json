@@ -1,6 +1,6 @@
 {
   "name" : "bignum",
-  "version" : "0.4.1",
+  "version" : "0.5.0",
   "description" : "Arbitrary-precision integer arithmetic using OpenSSL",
   "main" : "./index.js",
   "repository" : {
@@ -29,10 +29,10 @@
   },
   "license" : "MIT/X11",
   "engine" : {
-    "node" : ">=0.2.0"
+    "node" : ">=0.8.0"
   },
   "scripts" : {
-    "install" : "node-waf configure build",
+    "install" : "node-gyp configure build",
     "test" : "expresso"
   },
   "contributors": [

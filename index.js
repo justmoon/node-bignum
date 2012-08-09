@@ -1,8 +1,6 @@
 try {
-    // node.js versions < 0.5.5
-    var cc = new require('./build/default/bignum');
+    var cc = new require('./build/Debug/bignum');
 } catch(e) {
-    // node.js versions >= 0.5.5
     var cc = new require('./build/Release/bignum');
 }
 var BigNum = cc.BigNum;

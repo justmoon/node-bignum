@@ -64,9 +64,7 @@ public:
   AutoBN_CTX()
   {
     ctx = BN_CTX_new();
-    // TODO: Handle this error some way that Node.js can catch
-    if (ctx == NULL)
-      throw "AutoBN_CTX : BN_CTX_new() returned NULL";
+    // TODO: Handle ctx == NULL 
   }
 
   ~AutoBN_CTX()
@@ -630,7 +628,7 @@ BigNum::Probprime(const Arguments& args)
   
   REQ_UINT32_ARG(0, reps);
 
-  return scope.Close(Number::New(BN_is_prime(bignum->bignum_, reps, NULL, ctx, NULL)));
+  return scope.Close(Number::New(BN_is_prime_ex(bignum->bignum_, reps, ctx, NULL)));
 }
 
 Handle<Value>
