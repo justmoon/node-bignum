@@ -418,4 +418,8 @@ if (process.argv[1] === __filename) {
     Object.keys(exports).forEach(function (ex) {
         exports[ex]();
     });
+
+    if ("function" === typeof gc) {
+        gc();
+    }
 }
