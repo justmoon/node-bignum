@@ -64,7 +64,7 @@ public:
   AutoBN_CTX()
   {
     ctx = BN_CTX_new();
-    // TODO: Handle ctx == NULL 
+    // TODO: Handle ctx == NULL
   }
 
   ~AutoBN_CTX()
