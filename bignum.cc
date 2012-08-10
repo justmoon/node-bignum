@@ -50,8 +50,8 @@ using namespace std;
       String::New("Argument " #I " must be a uint64")));      \
   uint64_t VAR = args[I]->ToInteger()->Value();
 
-#define WRAP_RESULT(RES, VAR)                                 \
-  Handle<Value> arg[1] = { External::New(RES) };              \
+#define WRAP_RESULT(RES, VAR)                                           \
+  Handle<Value> arg[1] = { External::New(static_cast<BigNum*>(RES)) };  \
   Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
 
 class AutoBN_CTX
@@ -82,7 +82,7 @@ public:
 class BigNum : ObjectWrap {
 public:
   static void Initialize(Handle<Object> target);
-  BIGNUM *bignum_;
+  BIGNUM bignum_;
   static Persistent<Function> js_conditioner;
   static void SetJSConditioner(Persistent<Function> constructor);
 
@@ -180,26 +180,28 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   target->Set(String::NewSymbol("BigNum"), constructor_template->GetFunction());
 }
 
-BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
+BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
 {
-  bignum_ = NULL;
+  BN_init(&bignum_);
+  BN_zero(&bignum_);
+
+  BIGNUM *res = &bignum_;
 
   const char *cstr = *str;
   switch (base) {
   case 2:
-    bignum_ = BN_new();
-    BN_init(bignum_);
+    BN_init(&bignum_);
     for (int i = 0, l = str.length(); i < l; i++) {
       if (cstr[l-i-1] != '0') {
-        BN_set_bit(bignum_, i);
+        BN_set_bit(&bignum_, i);
       }
     }
     break;
   case 10:
-    BN_dec2bn(&bignum_, cstr);
+    BN_dec2bn(&res, cstr);
     break;
   case 16:
-    BN_hex2bn(&bignum_, cstr);
+    BN_hex2bn(&res, cstr);
     break;
   default:
     ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
@@ -207,43 +209,40 @@ BigNum::BigNum (const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
   }
 }
 
-BigNum::BigNum (uint64_t num) : ObjectWrap ()
+BigNum::BigNum(uint64_t num) : ObjectWrap ()
 {
-  bignum_ = BN_new();
-  BN_init(bignum_);
+  BN_init(&bignum_);
 
-  BN_set_word(bignum_, num);
+  BN_set_word(&bignum_, num);
 }
 
-BigNum::BigNum (int64_t num) : ObjectWrap ()
+BigNum::BigNum(int64_t num) : ObjectWrap ()
 {
-  bignum_ = BN_new();
-  BN_init(bignum_);
+  BN_init(&bignum_);
 
   if (num > 0) {
-    BN_set_word(bignum_, num);
+    BN_set_word(&bignum_, num);
   } else {
-    BN_set_word(bignum_, -num);
-    BN_set_negative(bignum_, 1);
+    BN_set_word(&bignum_, -num);
+    BN_set_negative(&bignum_, 1);
   }
 }
 
-BigNum::BigNum (BIGNUM *num) : ObjectWrap ()
+BigNum::BigNum(BIGNUM *num) : ObjectWrap ()
 {
-  bignum_ = num;
+  BN_init(&bignum_);
+  BN_copy(&bignum_, num);
 }
 
-BigNum::BigNum () : ObjectWrap ()
+BigNum::BigNum() : ObjectWrap ()
 {
-  bignum_ = BN_new();
-  BN_init(bignum_);
-
-  BN_zero(bignum_);
+  BN_init(&bignum_);
+  BN_zero(&bignum_);
 }
 
-BigNum::~BigNum ()
+BigNum::~BigNum()
 {
-  BN_clear_free(bignum_);
+  BN_clear_free(&bignum_);
 }
 
 Handle<Value>
@@ -264,12 +263,11 @@ BigNum::New(const Arguments& args)
   uint64_t base;
 
   if (args[0]->IsExternal()) {
-    BIGNUM *num = (BIGNUM *) External::Unwrap(args[0]);
-    bignum = new BigNum(num);
+    bignum = (BigNum *) External::Unwrap(args[0]);
   } else {
     int len = args.Length();
     Local<Object> ctx = Local<Object>::New(Object::New());
-    Handle<Value>* newArgs = new Handle<Value>[len];
+    Handle<Value> newArgs[len];
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
@@ -283,7 +281,6 @@ BigNum::New(const Arguments& args)
     base = obj->ToObject()->Get(String::NewSymbol("base"))->ToNumber()->Value();
 
     bignum = new BigNum(str, base);
-    delete[] newArgs;
   }
 
   bignum->Wrap(args.This());
@@ -306,10 +303,10 @@ BigNum::ToString(const Arguments& args)
   char *to = NULL;
   switch (base) {
   case 10:
-    to = BN_bn2dec(bignum->bignum_);
+    to = BN_bn2dec(&bignum->bignum_);
     break;
   case 16:
-    to = BN_bn2hex(bignum->bignum_);
+    to = BN_bn2hex(&bignum->bignum_);
     break;
   default:
     return ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
@@ -328,10 +325,9 @@ BigNum::Badd(const Arguments& args)
   HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
+  BigNum *res = new BigNum();
 
-  BN_add(res, bignum->bignum_, bn->bignum_);
+  BN_add(&res->bignum_, &bignum->bignum_, &bn->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -345,12 +341,11 @@ BigNum::Bsub(const Arguments& args)
   HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_sub(res, bignum->bignum_, bn->bignum_);
+  BigNum *res = new BigNum();
+  BN_sub(&res->bignum_, &bignum->bignum_, &bn->bignum_);
 
   WRAP_RESULT(res, result);
-  
+
   return scope.Close(result);
 }
 
@@ -362,10 +357,9 @@ BigNum::Bmul(const Arguments& args)
   HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_mul(res, bignum->bignum_, bn->bignum_, ctx);
-  
+  BigNum *res = new BigNum();
+  BN_mul(&res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -379,10 +373,9 @@ BigNum::Bdiv(const Arguments& args)
   HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_div(res, NULL, bignum->bignum_, bi->bignum_, ctx);
-  
+  BigNum *res = new BigNum();
+  BN_div(&res->bignum_, NULL, &bignum->bignum_, &bi->bignum_, ctx);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -395,9 +388,9 @@ BigNum::Uadd(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_add_word(res, x);
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_add_word(&res->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -410,9 +403,9 @@ BigNum::Usub(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_sub_word(res, x);
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_sub_word(&res->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -425,9 +418,9 @@ BigNum::Umul(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_mul_word(res, x);
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_mul_word(&res->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -440,9 +433,9 @@ BigNum::Udiv(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_div_word(res, x);
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_div_word(&res->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -455,10 +448,9 @@ BigNum::Umul_2exp(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_lshift(res, bignum->bignum_, x);
-  
+  BigNum *res = new BigNum();
+  BN_lshift(&res->bignum_, &bignum->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -471,10 +463,9 @@ BigNum::Udiv_2exp(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_rshift(res, bignum->bignum_, x);
-  
+  BigNum *res = new BigNum();
+  BN_rshift(&res->bignum_, &bignum->bignum_, x);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -486,9 +477,9 @@ BigNum::Babs(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_set_negative(res, 0);
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_set_negative(&res->bignum_, 0);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -500,9 +491,9 @@ BigNum::Bneg(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_dup(bignum->bignum_);
-  BN_set_negative(res, !BN_is_negative(res));
-  
+  BigNum *res = new BigNum(&bignum->bignum_);
+  BN_set_negative(&res->bignum_, !BN_is_negative(&res->bignum_));
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -516,10 +507,9 @@ BigNum::Bmod(const Arguments& args)
   HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_div(NULL, res, bignum->bignum_, bn->bignum_, ctx);
-  
+  BigNum *res = new BigNum();
+  BN_div(NULL, &res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -532,10 +522,9 @@ BigNum::Umod(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_set_word(res, BN_mod_word(bignum->bignum_, x));
-  
+  BigNum *res = new BigNum();
+  BN_set_word(&res->bignum_, BN_mod_word(&bignum->bignum_, x));
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -550,9 +539,8 @@ BigNum::Bpowm(const Arguments& args)
 
   BigNum *bn1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *bn2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_mod_exp(res, bignum->bignum_, bn1->bignum_, bn2->bignum_, ctx);
+  BigNum *res = new BigNum();
+  BN_mod_exp(&res->bignum_, &bignum->bignum_, &bn1->bignum_, &bn2->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -568,18 +556,18 @@ BigNum::Upowm(const Arguments& args)
 
   REQ_UINT64_ARG(0, x);
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
-  BIGNUM *exp = BN_new();
-  BN_init(exp);
-  BN_set_word(exp, x);
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_mod_exp(res, bignum->bignum_, exp, bn->bignum_, ctx);
+  BIGNUM exp;
+  BN_init(&exp);
+  BN_set_word(&exp, x);
+
+  BigNum *res = new BigNum();
+  BN_mod_exp(&res->bignum_, &bignum->bignum_, &exp, &bn->bignum_, ctx);
+
+  BN_clear_free(&exp);
 
   WRAP_RESULT(res, result);
 
-  BN_free(exp);
-
-  return scope.Close(result); 
+  return scope.Close(result);
 }
 
 Handle<Value>
@@ -590,14 +578,15 @@ BigNum::Upow(const Arguments& args)
   HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
-  BIGNUM *exp = BN_new();
-  BN_init(exp);
-  BN_set_word(exp, x);
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  
-  BN_exp(res, bignum->bignum_, exp, ctx);
-  
+  BIGNUM exp;
+  BN_init(&exp);
+  BN_set_word(&exp, x);
+
+  BigNum *res = new BigNum();
+  BN_exp(&res->bignum_, &bignum->bignum_, &exp, ctx);
+
+  BN_clear_free(&exp);
+
   WRAP_RESULT(res, result);
 
   return scope.Close(result);
@@ -609,10 +598,9 @@ BigNum::Brand0(const Arguments& args)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
-  BIGNUM *res = BN_new();
-  BN_init(res);
+  BigNum *res = new BigNum();
 
-  BN_rand_range(res, bignum->bignum_);
+  BN_rand_range(&res->bignum_, &bignum->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -625,10 +613,10 @@ BigNum::Probprime(const Arguments& args)
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
-  
+
   REQ_UINT32_ARG(0, reps);
 
-  return scope.Close(Number::New(BN_is_prime_ex(bignum->bignum_, reps, ctx, NULL)));
+  return scope.Close(Number::New(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
 }
 
 Handle<Value>
@@ -636,10 +624,10 @@ BigNum::Bcompare(const Arguments& args)
 {
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
-  
+
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 
-  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn->bignum_)));
+  return scope.Close(Number::New(BN_cmp(&bignum->bignum_, &bn->bignum_)));
 }
 
 Handle<Value>
@@ -649,15 +637,18 @@ BigNum::Scompare(const Arguments& args)
   HandleScope scope;
 
   REQ_INT64_ARG(0, x);
-  BIGNUM *bn = BN_new();
+  BIGNUM bn;
+  BN_init(&bn);
   if (x > 0) {
-    BN_set_word(bn, x);
+    BN_set_word(&bn, x);
   } else {
-    BN_set_word(bn, -x);
-    BN_set_negative(bn, 1);
+    BN_set_word(&bn, -x);
+    BN_set_negative(&bn, 1);
   }
+  int res = BN_cmp(&bignum->bignum_, &bn);
+  BN_clear_free(&bn);
 
-  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn)));
+  return scope.Close(Number::New(res));
 }
 
 Handle<Value>
@@ -665,13 +656,15 @@ BigNum::Ucompare(const Arguments& args)
 {
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
-  
-  REQ_UINT64_ARG(0, x);
-  BIGNUM *bn = BN_new();
-  BN_init(bn);
-  BN_set_word(bn, x);
 
-  return scope.Close(Number::New(BN_cmp(bignum->bignum_, bn)));
+  REQ_UINT64_ARG(0, x);
+  BIGNUM bn;
+  BN_init(&bn);
+  BN_set_word(&bn, x);
+  int res = BN_cmp(&bignum->bignum_, &bn);
+  BN_clear_free(&bn);
+
+  return scope.Close(Number::New(res));
 }
 
 Handle<Value>
@@ -706,9 +699,8 @@ BigNum::Binvertm(const Arguments& args)
   HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  BIGNUM *res = BN_new();
-  BN_init(res);
-  BN_mod_inverse(res, bignum->bignum_, bn->bignum_, ctx);
+  BigNum *res = new BigNum();
+  BN_mod_inverse(&res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -718,7 +710,7 @@ BigNum::Binvertm(const Arguments& args)
 Handle<Value>
 BigNum::Bsqrt(const Arguments& args)
 {
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+  //BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
   return ThrowException(Exception::Error(String::New("sqrt is not supported by OpenSSL.")));
@@ -727,7 +719,7 @@ BigNum::Bsqrt(const Arguments& args)
 Handle<Value>
 BigNum::Broot(const Arguments& args)
 {
-  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+  //BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
 
   return ThrowException(Exception::Error(String::New("root is not supported by OpenSSL.")));
