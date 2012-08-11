@@ -7,9 +7,9 @@ OpenSSL.
 This library is based on
 [node-bigint](https://github.com/substack/node-bigint) by
 [substack](https://github.com/substack), but instead of using libgmp,
-it uses the builtin bignum functionality from OpenSSL. The advantage
-is that OpenSSL is already a soft dependency of Node.js and therefore
-often already installed on systems with Node.js.
+it uses the builtin bignum functionality provided by OpenSSL. The
+advantage is that OpenSSL is already bundled with Node.js, so this
+library does not add any external dependency whatsoever.
 
 differences
 ===========
