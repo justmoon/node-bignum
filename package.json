@@ -8,8 +8,7 @@
     "url" : "http://github.com/justmoon/node-bignum.git"
   },
   "keywords": [
-    "gmp",
-    "libgmp",
+    "openssl",
     "big",
     "bignum",
     "bigint",

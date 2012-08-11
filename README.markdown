@@ -20,6 +20,10 @@ these differences:
 - Bignum rounds towards zero for integer divisions, e.g. `10 / -3 = -3`, whereas bigint
   rounds towards negative infinity, e.g. `10 / -3 = -4`.
 - Boolean operations (and, or, xor) are not supported.
+- nextPrime() is not supported.
+- sqrt() and root() are not supported.
+
+(Patches for the missing functionality are welcome.)
 
 example
 =======
@@ -251,23 +255,17 @@ Return whether the bignum is:
 * probably prime ('maybe')
 * certainly composite (false)
 
-using [mpz_probab_prime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
-
-.nextPrime()
-------------
-
-Return the next prime greater than `this` using
-[mpz_nextprime](http://gmplib.org/manual/Number-Theoretic-Functions.html).
+using [BN_is_prime_ex](http://www.openssl.org/docs/crypto/BN_generate_prime.html).
 
 .sqrt()
 -------
 
-Return a new `bignum` that is the square root.  This truncates.
+Return a new `bignum` that is the square root. This truncates.
 
 .root(n)
 -------
 
-Return a new `bignum` that is the `nth` root.  This truncates.
+Return a new `bignum` that is the `nth` root. This truncates.
 
 .shiftLeft(n)
 -------

@@ -118,7 +118,6 @@ protected:
   static Handle<Value> Uupow(const Arguments& args);
   static Handle<Value> Brand0(const Arguments& args);
   static Handle<Value> Probprime(const Arguments& args);
-  static Handle<Value> Nextprime(const Arguments& args);
   static Handle<Value> Bcompare(const Arguments& args);
   static Handle<Value> Scompare(const Arguments& args);
   static Handle<Value> Ucompare(const Arguments& args);
