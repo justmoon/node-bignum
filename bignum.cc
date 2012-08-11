@@ -267,11 +267,12 @@ BigNum::New(const Arguments& args)
   } else {
     int len = args.Length();
     Local<Object> ctx = Local<Object>::New(Object::New());
-    Handle<Value> newArgs[len];
+    Handle<Value>* newArgs = new Handle<Value>[len];
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
     Local<Value> obj = js_conditioner->Call(ctx, args.Length(), newArgs);
+    delete[] newArgs;
 
     if (!*obj) {
       return ThrowException(Exception::Error(String::New("Invalid type passed to bignum constructor")));
