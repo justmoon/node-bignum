@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/justmoon/node-bignum.png)](http://travis-ci.org/justmoon/node-bignum)
 bignum
 ======
 
