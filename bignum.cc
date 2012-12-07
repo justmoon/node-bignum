@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <iostream>
 
 #include <v8.h>
@@ -686,9 +687,66 @@ BigNum::Bor(const Arguments& args)
 Handle<Value>
 BigNum::Bxor(const Arguments& args)
 {
+  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+  BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   HandleScope scope;
 
-  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
+  if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
+    // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
+    return ThrowException(Exception::Error(String::New("Bitwise XOR of negative numbers is not supported")));
+  }
+
+  BigNum *res = new BigNum();
+
+  // Modified from https://github.com/Worlize/WebSocket-Node/blob/master/src/xor.cpp
+  // Portions Copyright (c) Agora S.A.
+  // Licensed under the MIT License.
+
+  int payloadSize = BN_num_bytes(&bignum->bignum_);
+  int maskSize = BN_num_bytes(&bn->bignum_);
+
+  int size = max(payloadSize, maskSize);
+  int offset = abs(payloadSize - maskSize);
+
+  int payloadOffset = 0;
+  int maskOffset = 0;
+
+  if (payloadSize < maskSize) {
+    payloadOffset = offset;
+  } else if (payloadSize > maskSize) {
+    maskOffset = offset;
+  }
+
+  uint8_t* payload = (uint8_t*) calloc(size, sizeof(char));
+  uint8_t* mask = (uint8_t*) calloc(size, sizeof(char));
+
+  BN_bn2bin(&bignum->bignum_, (unsigned char*) (payload + payloadOffset));
+  BN_bn2bin(&bn->bignum_, (unsigned char*) (mask + maskOffset));
+
+  uint32_t* pos32 = (uint32_t*) payload;
+  uint32_t* end32 = pos32 + (size / 4);
+  uint32_t* mask32 = (uint32_t*) mask;
+
+  while (pos32 < end32) {
+    *(pos32++) ^= *(mask32++);
+  }
+
+  uint8_t* pos8 = (uint8_t*) pos32;
+  uint8_t* end8 = payload + size;
+  uint8_t* mask8 = (uint8_t*) mask32;
+
+  while (pos8 < end8) {
+    *(pos8++) ^= *(mask8++);
+  }
+
+  BN_bin2bn((unsigned char*) payload, size, &res->bignum_);
+
+  WRAP_RESULT(res, result);
+
+  free(payload);
+  free(mask);
+
+  return scope.Close(result);
 }
 
 Handle<Value>

@@ -302,10 +302,11 @@ exports.or = function () {
         }
     }
 };
+*/
 
 exports.xor = function () {
-    for (var i = -10; i < 10; i++) {
-        for (var j = -10; j < 10; j++) {
+    for (var i = 0; i < 256; i++) {
+        for (var j = 0; j < 256; j++) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i ^ j).toString();
@@ -316,7 +317,6 @@ exports.xor = function () {
         }
     }
 };
-*/
 
 exports.rand = function () {
     for (var i = 1; i < 1000; i++) {
