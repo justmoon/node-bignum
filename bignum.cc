@@ -122,6 +122,7 @@ protected:
   static Handle<Value> Bcompare(const Arguments& args);
   static Handle<Value> Scompare(const Arguments& args);
   static Handle<Value> Ucompare(const Arguments& args);
+  static Handle<Value> Bop(const Arguments& args, int op);
   static Handle<Value> Band(const Arguments& args);
   static Handle<Value> Bor(const Arguments& args);
   static Handle<Value> Bxor(const Arguments& args);
@@ -669,23 +670,7 @@ BigNum::Ucompare(const Arguments& args)
 }
 
 Handle<Value>
-BigNum::Band(const Arguments& args)
-{
-  HandleScope scope;
-
-  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
-}
-
-Handle<Value>
-BigNum::Bor(const Arguments& args)
-{
-  HandleScope scope;
-
-  return ThrowException(Exception::Error(String::New("Boolean operations not supported by OpenSSL")));
-}
-
-Handle<Value>
-BigNum::Bxor(const Arguments& args)
+BigNum::Bop(const Arguments& args, int op)
 {
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
@@ -727,16 +712,20 @@ BigNum::Bxor(const Arguments& args)
   uint32_t* end32 = pos32 + (size / 4);
   uint32_t* mask32 = (uint32_t*) mask;
 
-  while (pos32 < end32) {
-    *(pos32++) ^= *(mask32++);
+  switch (op) {
+    case 0: while (pos32 < end32) *(pos32++) &= *(mask32++); break;
+    case 1: while (pos32 < end32) *(pos32++) |= *(mask32++); break;
+    case 2: while (pos32 < end32) *(pos32++) ^= *(mask32++); break;
   }
 
   uint8_t* pos8 = (uint8_t*) pos32;
   uint8_t* end8 = payload + size;
   uint8_t* mask8 = (uint8_t*) mask32;
 
-  while (pos8 < end8) {
-    *(pos8++) ^= *(mask8++);
+  switch (op) {
+    case 0: while (pos8 < end8) *(pos8++) &= *(mask8++); break;
+    case 1: while (pos8 < end8) *(pos8++) |= *(mask8++); break;
+    case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
   }
 
   BN_bin2bn((unsigned char*) payload, size, &res->bignum_);
@@ -747,6 +736,24 @@ BigNum::Bxor(const Arguments& args)
   free(mask);
 
   return scope.Close(result);
+}
+
+Handle<Value>
+BigNum::Band(const Arguments& args)
+{
+  return Bop(args, 0);
+}
+
+Handle<Value>
+BigNum::Bor(const Arguments& args)
+{
+  return Bop(args, 1);
+}
+
+Handle<Value>
+BigNum::Bxor(const Arguments& args)
+{
+  return Bop(args, 2);
 }
 
 Handle<Value>
