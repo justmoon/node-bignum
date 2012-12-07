@@ -678,7 +678,7 @@ BigNum::Bop(const Arguments& args, int op)
 
   if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
     // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
-    return ThrowException(Exception::Error(String::New("Bitwise XOR of negative numbers is not supported")));
+    return ThrowException(Exception::Error(String::New("Bitwise operations on negative numbers are not supported")));
   }
 
   BigNum *res = new BigNum();
