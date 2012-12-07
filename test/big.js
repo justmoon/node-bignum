@@ -274,10 +274,9 @@ exports.pow = function () {
     );
 };
 
-/*
 exports.and = function () {
-    for (var i = -10; i < 10; i++) {
-        for (var j = -10; j < 10; j++) {
+    for (var i = 0; i < 256; i += 7) {
+        for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i & j).toString();
@@ -287,11 +286,16 @@ exports.and = function () {
             assert.eql(bignum.and(i, j).toString(), ks);
         }
     }
+    assert.eql(bignum.and(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
+    assert.eql(bignum.and(bignum('111110', 16), bignum('111111', 16)).toString(16), '111110');
+    assert.eql(bignum.and(bignum('111112', 16), bignum('111111', 16)).toString(16), '111110');
+    assert.eql(bignum.and(bignum('111121', 16), bignum('111111', 16)).toString(16), '111101');
+    assert.eql(bignum.and(bignum('111131', 16), bignum('111111', 16)).toString(16), '111111');
 };
 
 exports.or = function () {
-    for (var i = -10; i < 10; i++) {
-        for (var j = -10; j < 10; j++) {
+    for (var i = 0; i < 256; i += 7) {
+        for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i | j).toString();
@@ -301,12 +305,15 @@ exports.or = function () {
             assert.eql(bignum.or(i, j).toString(), ks);
         }
     }
+    assert.eql(bignum.or(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
+    assert.eql(bignum.or(bignum('111110', 16), bignum('111111', 16)).toString(16), '111111');
+    assert.eql(bignum.or(bignum('111112', 16), bignum('111111', 16)).toString(16), '111113');
+    assert.eql(bignum.or(bignum('111121', 16), bignum('111111', 16)).toString(16), '111131');
 };
-*/
 
 exports.xor = function () {
-    for (var i = 0; i < 256; i++) {
-        for (var j = 0; j < 256; j++) {
+    for (var i = 0; i < 256; i += 7) {
+        for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i ^ j).toString();
@@ -316,6 +323,10 @@ exports.xor = function () {
             assert.eql(bignum.xor(i, j).toString(), ks);
         }
     }
+    assert.eql(bignum.xor(bignum('111111', 16), bignum('111111', 16)).toString(), 0);
+    assert.eql(bignum.xor(bignum('111110', 16), bignum('111111', 16)).toString(), 1);
+    assert.eql(bignum.xor(bignum('111112', 16), bignum('111111', 16)).toString(), 3);
+    assert.eql(bignum.xor(bignum('111121', 16), bignum('111111', 16)).toString(), 0x30);
 };
 
 exports.rand = function () {
