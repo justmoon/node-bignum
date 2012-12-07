@@ -19,8 +19,7 @@ these differences:
 
 - Bignum rounds towards zero for integer divisions, e.g. `10 / -3 = -3`, whereas bigint
   rounds towards negative infinity, e.g. `10 / -3 = -4`.
-- Boolean operations (and, or) are not supported. Boolean xor is implemented
-  for positive numbers only.
+- Bitwise operations (and, or, xor) are implemented for positive numbers only.
 - nextPrime() is not supported.
 - sqrt() and root() are not supported.
 
