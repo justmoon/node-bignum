@@ -8,7 +8,7 @@ This library is based on
 [node-bigint](https://github.com/substack/node-bigint) by
 [substack](https://github.com/substack), but instead of using libgmp,
 it uses the builtin bignum functionality provided by OpenSSL. The
-advantage is that OpenSSL is already bundled with Node.js, so this
+advantage is that OpenSSL is already part of Node.js, so this
 library does not add any external dependency whatsoever.
 
 differences
@@ -283,18 +283,22 @@ Return a new `bignum` of the value integer divided by
 install
 =======
 
-You'll need the libssl (OpenSSL) source to compile this package. If
-you compiled Node.js using the official instructions, you'll already
-have it. Otherwise install it using the instructions below.
+To compile the package, your system needs to be set up for building Node.js
+modules.
 
-Under Debian-based systems,
-
-    sudo aptitude install libssl3-dev
-
-On a Mac with [Homebrew](https://github.com/mxcl/homebrew/),
-
-    brew install openssl
-
-And then install with [npm](http://npmjs.org):
+You can install node-bignum with [npm](http://npmjs.org):
 
     npm install bignum
+
+develop
+=======
+
+You can clone the git repo and compile with
+
+    git clone git://github.com/justmoon/node-bignum.git
+    cd node-bignum
+    npm install
+
+Run the tests with
+
+    npm test
