@@ -312,7 +312,7 @@ BigNum.fromBuffer = function (buf, opts) {
         || opts.endian || 'big'
     ;
 
-    var size = opts.size || 1;
+    var size = opts.size === 'auto' ? Math.ceil(buf.length) : (opts.size || 1);
 
     if (buf.length % size !== 0) {
         throw new RangeError('Buffer length (' + buf.length + ')'
@@ -376,12 +376,13 @@ BigNum.prototype.toBuffer = function (opts) {
     var endian = { 1 : 'big', '-1' : 'little' }[opts.endian]
         || opts.endian || 'big'
     ;
-    var size = opts.size || 1;
 
     var hex = this.toString(16);
     if (hex.charAt(0) === '-') throw new Error(
         'converting negative numbers to Buffers not supported yet'
     );
+
+    var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : (opts.size || 1);
 
     var len = Math.ceil(hex.length / (2 * size)) * size;
     var buf = new Buffer(len);

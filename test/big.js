@@ -424,6 +424,20 @@ exports.mod = function () {
     );
 };
 
+exports.endian = function () {
+  var a = bignum(0x0102030405);
+  assert.eql(a.toBuffer({ endian: 'big', size: 2 }).toString('hex'), '000102030405');
+  assert.eql(a.toBuffer({ endian: 'little', size: 2 }).toString('hex'), '010003020504');
+
+  var b = bignum(0x0102030405);
+  assert.eql(a.toBuffer({ endian: 'big', size: 'auto' }).toString('hex'), '0102030405');
+  assert.eql(a.toBuffer({ endian: 'little', size: 'auto' }).toString('hex'), '0504030201');
+
+  var c = new Buffer("000102030405", 'hex');
+  assert.eql(bignum.fromBuffer(c, { endian: 'big', size: 'auto'}).toString(16), "0102030405");
+  assert.eql(bignum.fromBuffer(c, { endian: 'little', size: 'auto'}).toString(16), "050403020100");
+}
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {
