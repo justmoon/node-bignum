@@ -94,6 +94,7 @@ bignum.fromBuffer(buf, opts)
 Create a new `bignum` from a `Buffer`.
 
 The default options are:
+
     {
         order : 'forward', // low-to-high indexed word ordering
         endian : 'big',
@@ -125,6 +126,7 @@ precision or you'll get ±`Infinity`.
 Return a new `Buffer` with the data from the `bignum`.
 
 The default options are:
+
     {
         order : 'forward', // low-to-high indexed word ordering
         endian : 'big',
