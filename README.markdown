@@ -96,12 +96,11 @@ Create a new `bignum` from a `Buffer`.
 The default options are:
 
     {
-        order : 'forward', // low-to-high indexed word ordering
         endian : 'big',
         size : 1, // number of bytes in each word
     }
 
-Note that endian doesn't matter when size = 1.
+Note that endian doesn't matter when size = 1. If you wish to reverse the entire buffer byte by byte, pass size: 'auto'.
 
 methods[1]
 ==========
@@ -128,12 +127,11 @@ Return a new `Buffer` with the data from the `bignum`.
 The default options are:
 
     {
-        order : 'forward', // low-to-high indexed word ordering
         endian : 'big',
         size : 1, // number of bytes in each word
     }
 
-Note that endian doesn't matter when size = 1.
+Note that endian doesn't matter when size = 1. If you wish to reverse the entire buffer byte by byte, pass size: 'auto'.
 
 .add(n)
 -------
