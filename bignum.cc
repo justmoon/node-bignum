@@ -129,6 +129,8 @@ protected:
   static Handle<Value> Binvertm(const Arguments& args);
   static Handle<Value> Bsqrt(const Arguments& args);
   static Handle<Value> Broot(const Arguments& args);
+  static Handle<Value> BitLength(const Arguments& args);
+  static Handle<Value> Bgcd(const Arguments& args);
 };
 
 Persistent<FunctionTemplate> BigNum::constructor_template;
@@ -177,6 +179,8 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "binvertm", Binvertm);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bsqrt", Bsqrt);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "broot", Broot);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bitLength", BitLength);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "gcd", Bgcd);
 
   target->Set(String::NewSymbol("BigNum"), constructor_template->GetFunction());
 }
@@ -788,6 +792,34 @@ BigNum::Broot(const Arguments& args)
   HandleScope scope;
 
   return ThrowException(Exception::Error(String::New("root is not supported by OpenSSL.")));
+}
+
+Handle<Value>
+BigNum::BitLength(const Arguments& args)
+{
+  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+  HandleScope scope;
+  
+  int size = BN_num_bits(&bignum->bignum_);
+  Handle<Value> result = Integer::New(size);
+  
+  return scope.Close(result);
+}
+
+Handle<Value>
+BigNum::Bgcd(const Arguments& args)
+{
+  AutoBN_CTX ctx;
+  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+  HandleScope scope;
+
+  BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  BigNum *res = new BigNum();
+
+  BN_gcd(&res->bignum_, &bignum->bignum_, &bi->bignum_, ctx);
+
+  WRAP_RESULT(res, result);
+  return scope.Close(result);
 }
 
 static Handle<Value>
