@@ -808,3 +808,5 @@ init (Handle<Object> target)
   BigNum::Initialize(target);
   NODE_SET_METHOD(target, "setJSConditioner", SetJSConditioner);
 }
+
+NODE_MODULE(bignum, init)
