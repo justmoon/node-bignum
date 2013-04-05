@@ -264,7 +264,7 @@ BigNum::New(const Arguments& args)
   uint64_t base;
 
   if (args[0]->IsExternal()) {
-    bignum = static_cast<BigNum*>(External::Unwrap(args[0]));
+    bignum = static_cast<BigNum*>(External::Cast(*(args[0]))->Value());
   } else {
     int len = args.Length();
     Local<Object> ctx = Local<Object>::New(Object::New());
