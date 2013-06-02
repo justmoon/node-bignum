@@ -89,7 +89,7 @@ If you pass in a string you can set the base that string is encoded in.
 Print out the `bignum` instance in the requested base as a string.
 
 bignum.fromBuffer(buf, opts)
-----------------------
+----------------------------
 
 Create a new `bignum` from a `Buffer`.
 
@@ -101,6 +101,11 @@ The default options are:
     }
 
 Note that endian doesn't matter when size = 1. If you wish to reverse the entire buffer byte by byte, pass size: 'auto'.
+
+bignum.prime(bits, safe=true)
+-----------------------------
+
+Generate a probable prime of length `bits`. If `safe` is true, it will be a "safe" prime of the form p=2p'+1 where p' is also prime.
 
 methods[1]
 ==========

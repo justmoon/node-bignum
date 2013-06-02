@@ -51,6 +51,12 @@ using namespace std;
       String::New("Argument " #I " must be a uint64")));      \
   uint64_t VAR = args[I]->ToInteger()->Value();
 
+#define REQ_BOOL_ARG(I, VAR)                                  \
+  if (args.Length() <= (I) || !args[I]->IsBoolean())          \
+    return ThrowException(Exception::TypeError(               \
+      String::New("Argument " #I " must be a boolean")));     \
+  bool VAR = args[I]->ToBoolean()->Value();
+
 #define WRAP_RESULT(RES, VAR)                                           \
   Handle<Value> arg[1] = { External::New(static_cast<BigNum*>(RES)) };  \
   Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
@@ -118,6 +124,7 @@ protected:
   static Handle<Value> Upow(const Arguments& args);
   static Handle<Value> Uupow(const Arguments& args);
   static Handle<Value> Brand0(const Arguments& args);
+  static Handle<Value> Uprime0(const Arguments& args);
   static Handle<Value> Probprime(const Arguments& args);
   static Handle<Value> Bcompare(const Arguments& args);
   static Handle<Value> Scompare(const Arguments& args);
@@ -149,6 +156,8 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
 
   constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
   constructor_template->SetClassName(String::NewSymbol("BigNum"));
+
+  NODE_SET_METHOD(constructor_template, "uprime0", Uprime0);
 
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "tostring", ToString);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "badd", Badd);
@@ -614,6 +623,23 @@ BigNum::Brand0(const Arguments& args)
 }
 
 Handle<Value>
+BigNum::Uprime0(const Arguments& args)
+{
+  HandleScope scope;
+
+  REQ_UINT32_ARG(0, x);
+  REQ_BOOL_ARG(1, safe);
+
+  BigNum *res = new BigNum();
+
+  BN_generate_prime_ex(&res->bignum_, x, safe, NULL, NULL, NULL);
+
+  WRAP_RESULT(res, result);
+
+  return scope.Close(result);
+}
+
+Handle<Value>
 BigNum::Probprime(const Arguments& args)
 {
   AutoBN_CTX ctx;
@@ -799,10 +825,10 @@ BigNum::BitLength(const Arguments& args)
 {
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   HandleScope scope;
-  
+
   int size = BN_num_bits(&bignum->bignum_);
   Handle<Value> result = Integer::New(size);
-  
+
   return scope.Close(result);
 }
 

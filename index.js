@@ -292,6 +292,17 @@ BigNum.prototype.invertm = function (mod) {
     }
 };
 
+BigNum.prime = function (bits, safe) {
+  if ("undefined" === typeof safe) {
+    safe = true;
+  }
+
+  // Force uint32
+  bits >>>= 0;
+
+  return BigNum.uprime0(bits, !!safe);
+};
+
 BigNum.prototype.probPrime = function (reps) {
     var n = this.probprime(reps || 10);
     return { 1 : true, 0 : false }[n];
