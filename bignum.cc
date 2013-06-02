@@ -86,6 +86,89 @@ public:
   bool operator!() { return (ctx == NULL); }
 };
 
+/**
+ * BN_jacobi_priv() computes the Jacobi symbol of A with respect to N.
+ *
+ * Hence, *jacobi = 1 when the jacobi symbol is unity and *jacobi = -1 when the
+ * jacobi symbol is -1. N must be odd and >= 3. It is required that 0 <= A < N.
+ *
+ * When successful 0 is returned. -1 is returned on failure.
+ *
+ * This is an implementation of an iterative version of Algorithm 2.149 on page
+ * 73 of the book "Handbook of Applied Cryptography" by Menezes, Oorshot,
+ * Vanstone. Note that there is a typo in step 1. Step 1 should return the value
+ * 1. The algorithm has a running time of O((lg N)^2) bit operations.
+ *
+ * @author Adam L. Young
+ */
+int BN_jacobi_priv(const BIGNUM *A,const BIGNUM *N,int *jacobi,
+                   BN_CTX *ctx)
+{
+  int e,returnvalue=0,s,bit0,bit1,bit2,a1bit0,a1bit1;
+  BIGNUM *zero,*a1,*n1,*three,*tmp;
+
+  if (!jacobi)
+    return -1;
+  *jacobi = 1;
+  if ((!A) || (!N) || (!ctx))
+    return -1;
+  if (!BN_is_odd(N))
+    return -1; /* ERROR: BN_jacobi() given an even N */
+  if (BN_cmp(A,N) >= 0)
+    return -1;
+  n1=BN_new();zero=BN_new();a1=BN_new();three=BN_new();tmp=BN_new();
+  BN_set_word(zero,0);
+  BN_set_word(three,3);
+  if (BN_cmp(N,three) < 0)
+	{ /* This function was written by Adam L. Young */
+    returnvalue = -1;
+    goto endBN_jacobi;
+	}
+  if (BN_cmp(zero,A) > 0)
+	{
+    returnvalue = -1;
+    goto endBN_jacobi;
+	}
+  BN_copy(a1,A);
+  BN_copy(n1,N);
+startjacobistep1:
+  if (BN_is_zero(a1)) /* step 1 */
+    goto endBN_jacobi;  /* *jacobi = 1; */
+  if (BN_is_one(a1)) /* step 2 */
+    goto endBN_jacobi;  /* *jacobi = 1; */
+  for (e=0;;e++) /*  step 3 */
+    if (BN_is_odd(a1))
+      break;
+    else
+      BN_rshift1(a1,a1);
+  s = 1; /* step 4 */
+  bit0 = BN_is_odd(n1);
+  bit1 = BN_is_bit_set(n1,1);
+  if (e % 2)
+	{
+    bit2 = BN_is_bit_set(n1,2);
+    if ((!bit2) && (bit1) && (bit0))
+      s = -1;
+    if ((bit2) && (!bit1) && (bit0))
+      s = -1;
+	}
+  a1bit0 = BN_is_odd(a1);  /* step 5 */
+  a1bit1 = BN_is_bit_set(a1,1);
+  if (((bit1) && (bit0)) && ((a1bit1) && (a1bit0)))
+    s = -s;
+  BN_mod(n1,n1,a1,ctx); /* step 6 */
+  BN_copy(tmp,a1);
+  BN_copy(a1,n1);
+  BN_copy(n1,tmp);
+  *jacobi *= s;  /*  step 7 */
+  goto startjacobistep1;
+endBN_jacobi:
+  BN_clear_free(zero);
+  BN_clear_free(tmp);BN_clear_free(a1);
+  BN_clear_free(n1);BN_clear_free(three);
+  return returnvalue;
+}
+
 class BigNum : ObjectWrap {
 public:
   static void Initialize(Handle<Object> target);
@@ -138,6 +221,7 @@ protected:
   static Handle<Value> Broot(const Arguments& args);
   static Handle<Value> BitLength(const Arguments& args);
   static Handle<Value> Bgcd(const Arguments& args);
+  static Handle<Value> Bjacobi(const Arguments& args);
 };
 
 Persistent<FunctionTemplate> BigNum::constructor_template;
@@ -190,6 +274,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "broot", Broot);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "bitLength", BitLength);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "gcd", Bgcd);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "jacobi", Bjacobi);
 
   target->Set(String::NewSymbol("BigNum"), constructor_template->GetFunction());
 }
@@ -846,6 +931,23 @@ BigNum::Bgcd(const Arguments& args)
 
   WRAP_RESULT(res, result);
   return scope.Close(result);
+}
+
+Handle<Value>
+BigNum::Bjacobi(const Arguments& args)
+{
+  AutoBN_CTX ctx;
+  BigNum *bn_a = ObjectWrap::Unwrap<BigNum>(args.This());
+  HandleScope scope;
+
+  BigNum *bn_n = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
+  int res = 0;
+
+  if (BN_jacobi_priv(&bn_a->bignum_, &bn_n->bignum_, &res, ctx) == -1)
+    return ThrowException(Exception::Error(String::New(
+        "Jacobi symbol calculation failed")));
+
+  return scope.Close(Integer::New(res));
 }
 
 static Handle<Value>

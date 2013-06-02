@@ -456,6 +456,33 @@ exports.gcd = function () {
     assert.equal(b1.gcd(b2).toString(), expected.toString());
 };
 
+exports.jacobi = function () {
+    // test case from p. 134 of D. R. Stinson
+    var b1 = bignum('7411');
+    var b2 = bignum('9283');
+    assert.equal(b1.jacobi(b2), -1);
+
+    // test case from p. 132 of D. R. Stinson
+    b1 = bignum('6278');
+    b2 = bignum('9975');
+    assert.equal(b1.jacobi(b2), -1);
+
+    // test case from p. 74 of Men. Oorsh. Vans.
+    b1 = bignum('158');
+    b2 = bignum('235');
+    assert.equal(b1.jacobi(b2), -1);
+
+    // test case from p. 216 of Kumanduri Romero
+    b1 = bignum('4');
+    b2 = bignum('7');
+    assert.equal(b1.jacobi(b2), 1);
+
+    // test case from p. 363 of K. R. Rosen
+    b1 = bignum('68');
+    b2 = bignum('111');
+    assert.equal(b1.jacobi(b2), 1);
+};
+
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;
     Object.keys(exports).forEach(function (ex) {

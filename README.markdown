@@ -290,6 +290,14 @@ Return a new `bignum` of the value integer divided by
 Return the greatest common divisor of the current `bignum` with `n` as a new
 `bignum`.
 
+.jacobi(n)
+-------
+
+Return the Jacobi symbol (or Legendre symbol if `n` is prime) of the current
+`bignum` (= a) over `n`. Note that `n` must be odd and >= 3. 0 <= a < n.
+
+Returns -1 or 1 as an int (NOT a bignum). Throws an error on failure.
+
 .bitLength()
 ------------
 
