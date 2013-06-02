@@ -11,6 +11,7 @@ exports.create = function () {
     );
     
     assert.eql(Number(bignum('1e+100').toString()), 1e+100);
+    assert.eql(bignum('1e+100').bitLength(), 333);
     assert.eql(Number(bignum('1.23e+45').toString()), 1.23e+45);
     for (var i = 0; i < 10; i++) {
         assert.eql(
