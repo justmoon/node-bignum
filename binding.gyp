@@ -9,6 +9,9 @@
 
         # For Windows, require either a 32-bit or 64-bit
         # separately-compiled OpenSSL library.
+	# Currently set up to use with the following OpenSSL distro:
+	#
+	# http://slproweb.com/products/Win32OpenSSL.html
         [
 	  'OS=="win"', 
 	  {
