@@ -413,7 +413,7 @@ BigNum::ToString(const Arguments& args)
   }
 
   Handle<Value> result = String::New(to);
-  free(to);
+  OPENSSL_free(to);
 
   return scope.Close(result);
 }
