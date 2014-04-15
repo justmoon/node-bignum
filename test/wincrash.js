@@ -1,6 +1,8 @@
-var BigNum = require('../');
+var assert = require('assert'),
+    BigNum = require('../');
 
-var num = new BigNum(0);
-console.log('-before-');
-console.log(num.toString());
-console.log('-after-');
+exports.windowsCrash = function () { 
+    var num = new BigNum(0);
+    num = num.add(1);
+    assert.eql(num.toString(), '1')
+}
