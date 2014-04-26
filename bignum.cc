@@ -229,7 +229,7 @@ protected:
   static NAN_METHOD(BitLength);
   static NAN_METHOD(Bgcd);
   static NAN_METHOD(Bjacobi);
-  static _NAN_METHOD_RETURN_TYPE Bop(_NAN_METHOD_ARGS_TYPE args, int op);
+  static Handle<Value> Bop(_NAN_METHOD_ARGS_TYPE args, int op);
 };
 
 Persistent<FunctionTemplate> BigNum::constructor_template;
@@ -796,7 +796,7 @@ NAN_METHOD(BigNum::Ucompare)
   NanReturnValue(NanNew<Number>(res));
 }
 
-_NAN_METHOD_RETURN_TYPE
+Handle<Value>
 BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
 {
   NanEscapableScope();
@@ -807,7 +807,7 @@ BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
   if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
     // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
     NanThrowTypeError("Bitwise operations on negative numbers are not supported");
-    NanReturnUndefined();
+    return NanUndefined();
   }
 
   BigNum *res = new BigNum();
@@ -869,17 +869,20 @@ BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
 
 NAN_METHOD(BigNum::Band)
 {
-  return Bop(args, 0);
+  NanScope();
+  NanReturnValue(Bop(args, 0));
 }
 
 NAN_METHOD(BigNum::Bor)
 {
-  return Bop(args, 1);
+  NanScope();
+  NanReturnValue(Bop(args, 1));
 }
 
 NAN_METHOD(BigNum::Bxor)
 {
-  return Bop(args, 2);
+  NanScope();
+  NanReturnValue(Bop(args, 2));
 }
 
 NAN_METHOD(BigNum::Binvertm)
