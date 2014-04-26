@@ -66,7 +66,7 @@ using namespace std;
 
 #define WRAP_RESULT(RES, VAR)                                           \
   Handle<Value> arg[1] = { External::New(static_cast<BigNum*>(RES)) };  \
-  Local<Object> VAR = NanPersistentToLocal(constructor_template)->      \
+  Local<Object> VAR = NanNew<FunctionTemplate>(constructor_template)->      \
     GetFunction()->NewInstance(1, arg);
 
 class AutoBN_CTX
@@ -237,14 +237,14 @@ Persistent<FunctionTemplate> BigNum::constructor_template;
 Persistent<Function> BigNum::js_conditioner;
 
 void BigNum::SetJSConditioner(Local<Function> constructor) {
-  NanAssignPersistent(Function, js_conditioner, constructor);
+  NanAssignPersistent<Function>(js_conditioner, constructor);
 }
 
 void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NanScope();
 
   Local<FunctionTemplate> tmpl = FunctionTemplate::New(New);
-  NanAssignPersistent(FunctionTemplate, constructor_template, tmpl);
+  NanAssignPersistent<FunctionTemplate>(constructor_template, tmpl);
 
   tmpl->InstanceTemplate()->SetInternalFieldCount(1);
   tmpl->SetClassName(NanSymbol("BigNum"));
@@ -362,7 +362,7 @@ NAN_METHOD(BigNum::New)
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
-    Handle<Value> newInst = NanPersistentToLocal(constructor_template)->
+    Handle<Value> newInst = NanNew<FunctionTemplate>(constructor_template)->
         GetFunction()->NewInstance(len, newArgs);
     delete[] newArgs;
     NanReturnValue(newInst);
@@ -375,12 +375,12 @@ NAN_METHOD(BigNum::New)
     bignum = static_cast<BigNum*>(External::Cast(*(args[0]))->Value());
   } else {
     int len = args.Length();
-    Local<Object> ctx = NanNewLocal(Object::New());
+    Local<Object> ctx = NanNew<Object>();
     Handle<Value>* newArgs = new Handle<Value>[len];
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
-    Local<Value> obj = NanPersistentToLocal(js_conditioner)->
+    Local<Value> obj = NanNew<Function>(js_conditioner)->
       Call(ctx, args.Length(), newArgs);
     delete[] newArgs;
 
