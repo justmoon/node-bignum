@@ -65,7 +65,7 @@ using namespace std;
   bool VAR = args[I]->ToBoolean()->Value();
 
 #define WRAP_RESULT(RES, VAR)                                           \
-  Handle<Value> arg[1] = { External::New(static_cast<BigNum*>(RES)) };  \
+  Handle<Value> arg[1] = { NanNew<External>(static_cast<BigNum*>(RES)) };  \
   Local<Object> VAR = NanNew<FunctionTemplate>(constructor_template)->      \
     GetFunction()->NewInstance(1, arg);
 
@@ -243,7 +243,7 @@ void BigNum::SetJSConditioner(Local<Function> constructor) {
 void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NanScope();
 
-  Local<FunctionTemplate> tmpl = FunctionTemplate::New(New);
+  Local<FunctionTemplate> tmpl = NanNew<FunctionTemplate>(New);
   NanAssignPersistent<FunctionTemplate>(constructor_template, tmpl);
 
   tmpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -425,7 +425,7 @@ NAN_METHOD(BigNum::ToString)
     NanReturnUndefined();
   }
 
-  Handle<Value> result = String::New(to);
+  Handle<Value> result = NanNew<String>(to);
   free(to);
 
   NanReturnValue(result);
@@ -745,7 +745,7 @@ NAN_METHOD(BigNum::Probprime)
 
   REQ_UINT32_ARG(0, reps);
 
-  NanReturnValue(Number::New(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
+  NanReturnValue(NanNew<Number>(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
 }
 
 NAN_METHOD(BigNum::Bcompare)
@@ -756,7 +756,7 @@ NAN_METHOD(BigNum::Bcompare)
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 
-  NanReturnValue(Number::New(BN_cmp(&bignum->bignum_, &bn->bignum_)));
+  NanReturnValue(NanNew<Number>(BN_cmp(&bignum->bignum_, &bn->bignum_)));
 }
 
 NAN_METHOD(BigNum::Scompare)
@@ -777,7 +777,7 @@ NAN_METHOD(BigNum::Scompare)
   int res = BN_cmp(&bignum->bignum_, &bn);
   BN_clear_free(&bn);
 
-  NanReturnValue(Number::New(res));
+  NanReturnValue(NanNew<Number>(res));
 }
 
 NAN_METHOD(BigNum::Ucompare)
@@ -793,13 +793,13 @@ NAN_METHOD(BigNum::Ucompare)
   int res = BN_cmp(&bignum->bignum_, &bn);
   BN_clear_free(&bn);
 
-  NanReturnValue(Number::New(res));
+  NanReturnValue(NanNew<Number>(res));
 }
 
 _NAN_METHOD_RETURN_TYPE
 BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
 {
-  NanScope();
+  NanEscapableScope();
 
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
@@ -864,7 +864,7 @@ BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
   free(payload);
   free(mask);
 
-  NanReturnValue(result);
+  return NanEscapeScope(result);
 }
 
 NAN_METHOD(BigNum::Band)
@@ -925,7 +925,7 @@ NAN_METHOD(BigNum::BitLength)
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
 
   int size = BN_num_bits(&bignum->bignum_);
-  Handle<Value> result = Integer::New(size);
+  Handle<Value> result = NanNew<Integer>(size);
 
   NanReturnValue(result);
 }
@@ -961,7 +961,7 @@ NAN_METHOD(BigNum::Bjacobi)
     NanReturnUndefined();
   }
 
-  NanReturnValue(Integer::New(res));
+  NanReturnValue(NanNew<Integer>(res));
 }
 
 static NAN_METHOD(SetJSConditioner)
