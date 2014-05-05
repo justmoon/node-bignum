@@ -4,6 +4,9 @@
     {
       'target_name': 'bignum',
       'sources': [ 'bignum.cc' ],
+      'include_dirs': [
+        "<!(node -e \"require('nan')\")"
+      ],
       'conditions':
       [
 

@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include <v8.h>
-#include <node.h>
+#include <nan.h>
 #include <openssl/bn.h>
 #include <map>
 #include <utility>
@@ -16,50 +15,59 @@ using namespace node;
 using namespace std;
 
 #define REQ_STR_ARG(I, VAR)                                   \
-  if (args.Length()<= (I) || !args[I]->IsString())            \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be a string")));      \
+  if (args.Length()<= (I) || !args[I]->IsString()) {          \
+    NanThrowTypeError("Argument " #I " must be a string");    \
+    NanReturnUndefined();                                     \
+  }                                                           \
   Local<String> VAR = Local<String>::Cast(args[I]);
 
 #define REQ_UTF8_ARG(I, VAR)                                  \
-  if (args.Length() <= (I) || !args[I]->IsString())           \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be a utf8 string"))); \
+  if (args.Length() <= (I) || !args[I]->IsString()) {         \
+    NanThrowTypeError(                                        \
+      "Argument " #I " must be a utf8 string");               \
+    NanReturnUndefined();                                     \
+  }                                                           \
   String::Utf8Value VAR(args[I]->ToString());
 
 #define REQ_INT32_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsInt32())            \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be an int32")));      \
+  if (args.Length() <= (I) || !args[I]->IsInt32()) {          \
+    NanThrowTypeError("Argument " #I " must be an int32");    \
+    NanReturnUndefined();                                     \
+  }                                                           \
   int32_t VAR = args[I]->ToInt32()->Value();
 
 #define REQ_UINT32_ARG(I, VAR)                                \
-  if (args.Length() <= (I) || !args[I]->IsUint32())           \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be a uint32")));      \
+  if (args.Length() <= (I) || !args[I]->IsUint32()) {         \
+    NanThrowTypeError("Argument " #I " must be a uint32");    \
+    NanReturnUndefined();                                     \
+  }                                                           \
   uint32_t VAR = args[I]->ToUint32()->Value();
 
 #define REQ_INT64_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsNumber())           \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be an int64")));      \
+  if (args.Length() <= (I) || !args[I]->IsNumber()) {         \
+    NanThrowTypeError("Argument " #I " must be an int64");    \
+    NanReturnUndefined();                                     \
+  }                                                           \
   int64_t VAR = args[I]->ToInteger()->Value();
 
 #define REQ_UINT64_ARG(I, VAR)                                \
-  if (args.Length() <= (I) || !args[I]->IsNumber())           \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be a uint64")));      \
+  if (args.Length() <= (I) || !args[I]->IsNumber()) {         \
+    NanThrowTypeError("Argument " #I " must be a uint64");    \
+    NanReturnUndefined();                                     \
+  }                                                           \
   uint64_t VAR = args[I]->ToInteger()->Value();
 
 #define REQ_BOOL_ARG(I, VAR)                                  \
-  if (args.Length() <= (I) || !args[I]->IsBoolean())          \
-    return ThrowException(Exception::TypeError(               \
-      String::New("Argument " #I " must be a boolean")));     \
+  if (args.Length() <= (I) || !args[I]->IsBoolean()) {        \
+    NanThrowTypeError("Argument " #I " must be a boolean");   \
+    NanReturnUndefined();                                     \
+  }                                                           \
   bool VAR = args[I]->ToBoolean()->Value();
 
 #define WRAP_RESULT(RES, VAR)                                           \
-  Handle<Value> arg[1] = { External::New(static_cast<BigNum*>(RES)) };  \
-  Local<Object> VAR = constructor_template->GetFunction()->NewInstance(1, arg);
+  Handle<Value> arg[1] = { NanNew<External>(static_cast<BigNum*>(RES)) };  \
+  Local<Object> VAR = NanNew<FunctionTemplate>(constructor_template)->      \
+    GetFunction()->NewInstance(1, arg);
 
 class AutoBN_CTX
 {
@@ -169,12 +177,12 @@ endBN_jacobi:
   return returnvalue;
 }
 
-class BigNum : ObjectWrap {
+class BigNum : public ObjectWrap {
 public:
   static void Initialize(Handle<Object> target);
   BIGNUM bignum_;
   static Persistent<Function> js_conditioner;
-  static void SetJSConditioner(Persistent<Function> constructor);
+  static void SetJSConditioner(Local<Function> constructor);
 
 protected:
   static Persistent<FunctionTemplate> constructor_template;
@@ -186,97 +194,97 @@ protected:
   BigNum();
   ~BigNum();
 
-  static Handle<Value> New(const Arguments& args);
-  static Handle<Value> ToString(const Arguments& args);
-  static Handle<Value> Badd(const Arguments& args);
-  static Handle<Value> Bsub(const Arguments& args);
-  static Handle<Value> Bmul(const Arguments& args);
-  static Handle<Value> Bdiv(const Arguments& args);
-  static Handle<Value> Uadd(const Arguments& args);
-  static Handle<Value> Usub(const Arguments& args);
-  static Handle<Value> Umul(const Arguments& args);
-  static Handle<Value> Udiv(const Arguments& args);
-  static Handle<Value> Umul_2exp(const Arguments& args);
-  static Handle<Value> Udiv_2exp(const Arguments& args);
-  static Handle<Value> Babs(const Arguments& args);
-  static Handle<Value> Bneg(const Arguments& args);
-  static Handle<Value> Bmod(const Arguments& args);
-  static Handle<Value> Umod(const Arguments& args);
-  static Handle<Value> Bpowm(const Arguments& args);
-  static Handle<Value> Upowm(const Arguments& args);
-  static Handle<Value> Upow(const Arguments& args);
-  static Handle<Value> Uupow(const Arguments& args);
-  static Handle<Value> Brand0(const Arguments& args);
-  static Handle<Value> Uprime0(const Arguments& args);
-  static Handle<Value> Probprime(const Arguments& args);
-  static Handle<Value> Bcompare(const Arguments& args);
-  static Handle<Value> Scompare(const Arguments& args);
-  static Handle<Value> Ucompare(const Arguments& args);
-  static Handle<Value> Bop(const Arguments& args, int op);
-  static Handle<Value> Band(const Arguments& args);
-  static Handle<Value> Bor(const Arguments& args);
-  static Handle<Value> Bxor(const Arguments& args);
-  static Handle<Value> Binvertm(const Arguments& args);
-  static Handle<Value> Bsqrt(const Arguments& args);
-  static Handle<Value> Broot(const Arguments& args);
-  static Handle<Value> BitLength(const Arguments& args);
-  static Handle<Value> Bgcd(const Arguments& args);
-  static Handle<Value> Bjacobi(const Arguments& args);
+  static NAN_METHOD(New);
+  static NAN_METHOD(ToString);
+  static NAN_METHOD(Badd);
+  static NAN_METHOD(Bsub);
+  static NAN_METHOD(Bmul);
+  static NAN_METHOD(Bdiv);
+  static NAN_METHOD(Uadd);
+  static NAN_METHOD(Usub);
+  static NAN_METHOD(Umul);
+  static NAN_METHOD(Udiv);
+  static NAN_METHOD(Umul_2exp);
+  static NAN_METHOD(Udiv_2exp);
+  static NAN_METHOD(Babs);
+  static NAN_METHOD(Bneg);
+  static NAN_METHOD(Bmod);
+  static NAN_METHOD(Umod);
+  static NAN_METHOD(Bpowm);
+  static NAN_METHOD(Upowm);
+  static NAN_METHOD(Upow);
+  static NAN_METHOD(Uupow);
+  static NAN_METHOD(Brand0);
+  static NAN_METHOD(Uprime0);
+  static NAN_METHOD(Probprime);
+  static NAN_METHOD(Bcompare);
+  static NAN_METHOD(Scompare);
+  static NAN_METHOD(Ucompare);
+  static NAN_METHOD(Band);
+  static NAN_METHOD(Bor);
+  static NAN_METHOD(Bxor);
+  static NAN_METHOD(Binvertm);
+  static NAN_METHOD(Bsqrt);
+  static NAN_METHOD(Broot);
+  static NAN_METHOD(BitLength);
+  static NAN_METHOD(Bgcd);
+  static NAN_METHOD(Bjacobi);
+  static Handle<Value> Bop(_NAN_METHOD_ARGS_TYPE args, int op);
 };
 
 Persistent<FunctionTemplate> BigNum::constructor_template;
 
 Persistent<Function> BigNum::js_conditioner;
 
-void BigNum::SetJSConditioner(Persistent<Function> constructor) {
-  js_conditioner = constructor;
+void BigNum::SetJSConditioner(Local<Function> constructor) {
+  NanAssignPersistent<Function>(js_conditioner, constructor);
 }
 
 void BigNum::Initialize(v8::Handle<v8::Object> target) {
-  HandleScope scope;
+  NanScope();
 
-  Local<FunctionTemplate> t = FunctionTemplate::New(New);
-  constructor_template = Persistent<FunctionTemplate>::New(t);
+  Local<FunctionTemplate> tmpl = NanNew<FunctionTemplate>(New);
+  NanAssignPersistent<FunctionTemplate>(constructor_template, tmpl);
 
-  constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
-  constructor_template->SetClassName(String::NewSymbol("BigNum"));
+  tmpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tmpl->SetClassName(NanSymbol("BigNum"));
 
-  NODE_SET_METHOD(constructor_template, "uprime0", Uprime0);
+  NODE_SET_METHOD(tmpl, "uprime0", Uprime0);
 
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "tostring", ToString);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "badd", Badd);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bsub", Bsub);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bmul", Bmul);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bdiv", Bdiv);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "uadd", Uadd);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "usub", Usub);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "umul", Umul);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "udiv", Udiv);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "umul2exp", Umul_2exp);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "udiv2exp", Udiv_2exp);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "babs", Babs);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bneg", Bneg);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bmod", Bmod);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "umod", Umod);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bpowm", Bpowm);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "upowm", Upowm);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "upow", Upow);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "brand0", Brand0);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "probprime", Probprime);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bcompare", Bcompare);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "scompare", Scompare);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "ucompare", Ucompare);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "band", Band);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bor", Bor);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bxor", Bxor);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "binvertm", Binvertm);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bsqrt", Bsqrt);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "broot", Broot);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "bitLength", BitLength);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "gcd", Bgcd);
-  NODE_SET_PROTOTYPE_METHOD(constructor_template, "jacobi", Bjacobi);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "tostring", ToString);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "badd", Badd);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bsub", Bsub);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bmul", Bmul);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bdiv", Bdiv);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "uadd", Uadd);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "usub", Usub);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "umul", Umul);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "udiv", Udiv);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "umul2exp", Umul_2exp);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "udiv2exp", Udiv_2exp);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "babs", Babs);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bneg", Bneg);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bmod", Bmod);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "umod", Umod);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bpowm", Bpowm);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "upowm", Upowm);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "upow", Upow);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "brand0", Brand0);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "probprime", Probprime);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bcompare", Bcompare);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "scompare", Scompare);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "ucompare", Ucompare);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "band", Band);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bor", Bor);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bxor", Bxor);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "binvertm", Binvertm);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bsqrt", Bsqrt);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "broot", Broot);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "bitLength", BitLength);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "gcd", Bgcd);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "jacobi", Bjacobi);
 
-  target->Set(String::NewSymbol("BigNum"), constructor_template->GetFunction());
+  target->Set(NanSymbol("BigNum"), tmpl->GetFunction());
 }
 
 BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
@@ -303,7 +311,7 @@ BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
     BN_hex2bn(&res, cstr);
     break;
   default:
-    ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
+    NanThrowError("Invalid base, only 10 and 16 are supported");
     return;
   }
 }
@@ -344,20 +352,22 @@ BigNum::~BigNum()
   BN_clear_free(&bignum_);
 }
 
-Handle<Value>
-BigNum::New(const Arguments& args)
+NAN_METHOD(BigNum::New)
 {
+  NanScope();
+
   if (!args.IsConstructCall()) {
     int len = args.Length();
     Handle<Value>* newArgs = new Handle<Value>[len];
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
-    Handle<Value> newInst = constructor_template->GetFunction()->NewInstance(len, newArgs);
+    Handle<Value> newInst = NanNew<FunctionTemplate>(constructor_template)->
+        GetFunction()->NewInstance(len, newArgs);
     delete[] newArgs;
-    return newInst;
+    NanReturnValue(newInst);
   }
-  HandleScope scope;
+
   BigNum *bignum;
   uint64_t base;
 
@@ -365,34 +375,36 @@ BigNum::New(const Arguments& args)
     bignum = static_cast<BigNum*>(External::Cast(*(args[0]))->Value());
   } else {
     int len = args.Length();
-    Local<Object> ctx = Local<Object>::New(Object::New());
+    Local<Object> ctx = NanNew<Object>();
     Handle<Value>* newArgs = new Handle<Value>[len];
     for (int i = 0; i < len; i++) {
       newArgs[i] = args[i];
     }
-    Local<Value> obj = js_conditioner->Call(ctx, args.Length(), newArgs);
+    Local<Value> obj = NanNew<Function>(js_conditioner)->
+      Call(ctx, args.Length(), newArgs);
     delete[] newArgs;
 
     if (!*obj) {
-      return ThrowException(Exception::Error(String::New("Invalid type passed to bignum constructor")));
+      NanThrowError("Invalid type passed to bignum constructor");
+      NanReturnUndefined();
     }
 
-    String::Utf8Value str(obj->ToObject()->Get(String::NewSymbol("num"))->ToString());
-    base = obj->ToObject()->Get(String::NewSymbol("base"))->ToNumber()->Value();
+    String::Utf8Value str(obj->ToObject()->Get(NanSymbol("num"))->ToString());
+    base = obj->ToObject()->Get(NanSymbol("base"))->ToNumber()->Value();
 
     bignum = new BigNum(str, base);
   }
 
   bignum->Wrap(args.This());
 
-  return scope.Close(args.This());
+  NanReturnValue(args.This());
 }
 
-Handle<Value>
-BigNum::ToString(const Arguments& args)
+NAN_METHOD(BigNum::ToString)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   uint64_t base = 10;
 
@@ -409,20 +421,21 @@ BigNum::ToString(const Arguments& args)
     to = BN_bn2hex(&bignum->bignum_);
     break;
   default:
-    return ThrowException(Exception::Error(String::New("Invalid base, only 10 and 16 are supported")));
+    NanThrowError("Invalid base, only 10 and 16 are supported");
+    NanReturnUndefined();
   }
 
-  Handle<Value> result = String::New(to);
+  Handle<Value> result = NanNew<String>(to);
   free(to);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Badd(const Arguments& args)
+NAN_METHOD(BigNum::Badd)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -431,14 +444,14 @@ BigNum::Badd(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bsub(const Arguments& args)
+NAN_METHOD(BigNum::Bsub)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -446,15 +459,15 @@ BigNum::Bsub(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bmul(const Arguments& args)
+NAN_METHOD(BigNum::Bmul)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -462,15 +475,15 @@ BigNum::Bmul(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bdiv(const Arguments& args)
+NAN_METHOD(BigNum::Bdiv)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -478,14 +491,14 @@ BigNum::Bdiv(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Uadd(const Arguments& args)
+NAN_METHOD(BigNum::Uadd)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum(&bignum->bignum_);
@@ -493,14 +506,14 @@ BigNum::Uadd(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Usub(const Arguments& args)
+NAN_METHOD(BigNum::Usub)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum(&bignum->bignum_);
@@ -508,14 +521,14 @@ BigNum::Usub(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Umul(const Arguments& args)
+NAN_METHOD(BigNum::Umul)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum(&bignum->bignum_);
@@ -523,14 +536,14 @@ BigNum::Umul(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Udiv(const Arguments& args)
+NAN_METHOD(BigNum::Udiv)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum(&bignum->bignum_);
@@ -538,14 +551,14 @@ BigNum::Udiv(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Umul_2exp(const Arguments& args)
+NAN_METHOD(BigNum::Umul_2exp)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum();
@@ -553,14 +566,14 @@ BigNum::Umul_2exp(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Udiv_2exp(const Arguments& args)
+NAN_METHOD(BigNum::Udiv_2exp)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum();
@@ -568,43 +581,43 @@ BigNum::Udiv_2exp(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Babs(const Arguments& args)
+NAN_METHOD(BigNum::Babs)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *res = new BigNum(&bignum->bignum_);
   BN_set_negative(&res->bignum_, 0);
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bneg(const Arguments& args)
+NAN_METHOD(BigNum::Bneg)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *res = new BigNum(&bignum->bignum_);
   BN_set_negative(&res->bignum_, !BN_is_negative(&res->bignum_));
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bmod(const Arguments& args)
+NAN_METHOD(BigNum::Bmod)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -612,14 +625,14 @@ BigNum::Bmod(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Umod(const Arguments& args)
+NAN_METHOD(BigNum::Umod)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum();
@@ -627,15 +640,15 @@ BigNum::Umod(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bpowm(const Arguments& args)
+NAN_METHOD(BigNum::Bpowm)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn1 = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *bn2 = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
@@ -644,15 +657,15 @@ BigNum::Bpowm(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Upowm(const Arguments& args)
+NAN_METHOD(BigNum::Upowm)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[1]->ToObject());
@@ -667,15 +680,15 @@ BigNum::Upowm(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Upow(const Arguments& args)
+NAN_METHOD(BigNum::Upow)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BIGNUM exp;
@@ -689,14 +702,14 @@ BigNum::Upow(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Brand0(const Arguments& args)
+NAN_METHOD(BigNum::Brand0)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *res = new BigNum();
 
@@ -704,13 +717,12 @@ BigNum::Brand0(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Uprime0(const Arguments& args)
+NAN_METHOD(BigNum::Uprime0)
 {
-  HandleScope scope;
+  NanScope();
 
   REQ_UINT32_ARG(0, x);
   REQ_BOOL_ARG(1, safe);
@@ -721,37 +733,37 @@ BigNum::Uprime0(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Probprime(const Arguments& args)
+NAN_METHOD(BigNum::Probprime)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT32_ARG(0, reps);
 
-  return scope.Close(Number::New(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
+  NanReturnValue(NanNew<Number>(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
 }
 
-Handle<Value>
-BigNum::Bcompare(const Arguments& args)
+NAN_METHOD(BigNum::Bcompare)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
 
-  return scope.Close(Number::New(BN_cmp(&bignum->bignum_, &bn->bignum_)));
+  NanReturnValue(NanNew<Number>(BN_cmp(&bignum->bignum_, &bn->bignum_)));
 }
 
-Handle<Value>
-BigNum::Scompare(const Arguments& args)
+NAN_METHOD(BigNum::Scompare)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_INT64_ARG(0, x);
   BIGNUM bn;
@@ -765,14 +777,14 @@ BigNum::Scompare(const Arguments& args)
   int res = BN_cmp(&bignum->bignum_, &bn);
   BN_clear_free(&bn);
 
-  return scope.Close(Number::New(res));
+  NanReturnValue(NanNew<Number>(res));
 }
 
-Handle<Value>
-BigNum::Ucompare(const Arguments& args)
+NAN_METHOD(BigNum::Ucompare)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   REQ_UINT64_ARG(0, x);
   BIGNUM bn;
@@ -781,19 +793,21 @@ BigNum::Ucompare(const Arguments& args)
   int res = BN_cmp(&bignum->bignum_, &bn);
   BN_clear_free(&bn);
 
-  return scope.Close(Number::New(res));
+  NanReturnValue(NanNew<Number>(res));
 }
 
 Handle<Value>
-BigNum::Bop(const Arguments& args, int op)
+BigNum::Bop(_NAN_METHOD_ARGS_TYPE args, int op)
 {
+  NanEscapableScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
-  HandleScope scope;
 
   if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
     // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
-    return ThrowException(Exception::Error(String::New("Bitwise operations on negative numbers are not supported")));
+    NanThrowTypeError("Bitwise operations on negative numbers are not supported");
+    return NanUndefined();
   }
 
   BigNum *res = new BigNum();
@@ -850,33 +864,33 @@ BigNum::Bop(const Arguments& args, int op)
   free(payload);
   free(mask);
 
-  return scope.Close(result);
+  return NanEscapeScope(result);
 }
 
-Handle<Value>
-BigNum::Band(const Arguments& args)
+NAN_METHOD(BigNum::Band)
 {
-  return Bop(args, 0);
+  NanScope();
+  NanReturnValue(Bop(args, 0));
 }
 
-Handle<Value>
-BigNum::Bor(const Arguments& args)
+NAN_METHOD(BigNum::Bor)
 {
-  return Bop(args, 1);
+  NanScope();
+  NanReturnValue(Bop(args, 1));
 }
 
-Handle<Value>
-BigNum::Bxor(const Arguments& args)
+NAN_METHOD(BigNum::Bxor)
 {
-  return Bop(args, 2);
+  NanScope();
+  NanReturnValue(Bop(args, 2));
 }
 
-Handle<Value>
-BigNum::Binvertm(const Arguments& args)
+NAN_METHOD(BigNum::Binvertm)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -884,45 +898,47 @@ BigNum::Binvertm(const Arguments& args)
 
   WRAP_RESULT(res, result);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bsqrt(const Arguments& args)
+NAN_METHOD(BigNum::Bsqrt)
 {
+  NanScope();
+
   //BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
-  return ThrowException(Exception::Error(String::New("sqrt is not supported by OpenSSL.")));
+  NanThrowError("sqrt is not supported by OpenSSL.");
+  NanReturnUndefined();
 }
 
-Handle<Value>
-BigNum::Broot(const Arguments& args)
+NAN_METHOD(BigNum::Broot)
 {
+  NanScope();
+
   //BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
-  return ThrowException(Exception::Error(String::New("root is not supported by OpenSSL.")));
+  NanThrowError("root is not supported by OpenSSL.");
+  NanReturnUndefined();
 }
 
-Handle<Value>
-BigNum::BitLength(const Arguments& args)
+NAN_METHOD(BigNum::BitLength)
 {
+  NanScope();
+
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   int size = BN_num_bits(&bignum->bignum_);
-  Handle<Value> result = Integer::New(size);
+  Handle<Value> result = NanNew<Integer>(size);
 
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bgcd(const Arguments& args)
+NAN_METHOD(BigNum::Bgcd)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bi = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   BigNum *res = new BigNum();
@@ -930,40 +946,40 @@ BigNum::Bgcd(const Arguments& args)
   BN_gcd(&res->bignum_, &bignum->bignum_, &bi->bignum_, ctx);
 
   WRAP_RESULT(res, result);
-  return scope.Close(result);
+  NanReturnValue(result);
 }
 
-Handle<Value>
-BigNum::Bjacobi(const Arguments& args)
+NAN_METHOD(BigNum::Bjacobi)
 {
+  NanScope();
+
   AutoBN_CTX ctx;
   BigNum *bn_a = ObjectWrap::Unwrap<BigNum>(args.This());
-  HandleScope scope;
 
   BigNum *bn_n = ObjectWrap::Unwrap<BigNum>(args[0]->ToObject());
   int res = 0;
 
-  if (BN_jacobi_priv(&bn_a->bignum_, &bn_n->bignum_, &res, ctx) == -1)
-    return ThrowException(Exception::Error(String::New(
-        "Jacobi symbol calculation failed")));
+  if (BN_jacobi_priv(&bn_a->bignum_, &bn_n->bignum_, &res, ctx) == -1) {
+    NanThrowError("Jacobi symbol calculation failed");
+    NanReturnUndefined();
+  }
 
-  return scope.Close(Integer::New(res));
+  NanReturnValue(NanNew<Integer>(res));
 }
 
-static Handle<Value>
-SetJSConditioner(const Arguments& args)
+static NAN_METHOD(SetJSConditioner)
 {
-  HandleScope scope;
+  NanScope();
 
-  BigNum::SetJSConditioner(Persistent<Function>::New(Local<Function>::Cast(args[0])));
+  BigNum::SetJSConditioner(Local<Function>::Cast(args[0]));
 
-  return Undefined();
+  NanReturnUndefined();
 }
 
 extern "C" void
 init (Handle<Object> target)
 {
-  HandleScope scope;
+  NanScope();
 
   BigNum::Initialize(target);
   NODE_SET_METHOD(target, "setJSConditioner", SetJSConditioner);

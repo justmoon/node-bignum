@@ -1,0 +1,18 @@
+## DNT config file
+## see https://github.com/rvagg/dnt
+
+NODE_VERSIONS="\
+  master   \
+  v0.11.13 \
+  v0.10.26 \
+  v0.8.26  \
+"
+OUTPUT_PREFIX="bignum-"
+TEST_CMD="\
+  cd /dnt/ &&                                                    \
+  npm install node-gyp &&                                        \
+  npm install &&                                                 \
+  node_modules/.bin/node-gyp --nodedir /usr/src/node/ rebuild && \
+  npm test;                          \
+"
+LOG_OK_CMD="sed 's/^   ..32m100...0m .. tests$/ok/' | tail -2 | head -1"
