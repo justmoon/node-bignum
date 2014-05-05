@@ -22,7 +22,7 @@
     "url" : "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "git://github.com/rvagg/nan.git#0.9-wip"
+    "nan": "~1.0.0"
   },
   "devDependencies" : {
     "expresso" : ">=0.6.0",
