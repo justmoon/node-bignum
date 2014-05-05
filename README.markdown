@@ -31,13 +31,15 @@ example
 simple.js
 ---------
 
-    var bignum = require('bignum');
+```js
+var bignum = require('bignum');
 
-    var b = bignum('782910138827292261791972728324982')
-        .sub('182373273283402171237474774728373')
-        .div(8)
-    ;
-    console.log(b);
+var b = bignum('782910138827292261791972728324982')
+    .sub('182373273283402171237474774728373')
+    .div(8)
+;
+console.log(b);
+```
 
 ***
     $ node simple.js
@@ -48,16 +50,18 @@ perfect.js
 
 Generate the perfect numbers:
 
-    // If 2**n-1 is prime, then (2**n-1) * 2**(n-1) is perfect.
-    var bignum = require('bignum');
+```js
+// If 2**n-1 is prime, then (2**n-1) * 2**(n-1) is perfect.
+var bignum = require('bignum');
 
-    for (var n = 0; n < 100; n++) {
-        var p = bignum.pow(2, n).sub(1);
-        if (p.probPrime(50)) {
-            var perfect = p.mul(bignum.pow(2, n - 1));
-            console.log(perfect.toString());
-        }
+for (var n = 0; n < 100; n++) {
+    var p = bignum.pow(2, n).sub(1);
+    if (p.probPrime(50)) {
+        var perfect = p.mul(bignum.pow(2, n - 1));
+        console.log(perfect.toString());
     }
+}
+```
 
 ***
 
@@ -95,10 +99,12 @@ Create a new `bignum` from a `Buffer`.
 
 The default options are:
 
-    {
-        endian : 'big',
-        size : 1, // number of bytes in each word
-    }
+```js
+{
+    endian : 'big',
+    size : 1, // number of bytes in each word
+}
+```
 
 Note that endian doesn't matter when size = 1. If you wish to reverse the entire buffer byte by byte, pass size: 'auto'.
 
@@ -112,11 +118,15 @@ methods[1]
 
 For all of the instance methods below you can write either
 
-    bignum.method(x, y, z)
+```js
+bignum.method(x, y, z)
+```
 
 or if x is a `bignum` instance``
 
-    x.method(y, z)
+```js
+x.method(y, z)
+```
 
 .toNumber()
 -----------
@@ -131,10 +141,12 @@ Return a new `Buffer` with the data from the `bignum`.
 
 The default options are:
 
-    {
-        endian : 'big',
-        size : 1, // number of bytes in each word
-    }
+```js
+{
+    endian : 'big',
+    size : 1, // number of bytes in each word
+}
+```
 
 Note that endian doesn't matter when size = 1. If you wish to reverse the entire buffer byte by byte, pass size: 'auto'.
 
@@ -325,3 +337,4 @@ You can clone the git repo and compile with
 Run the tests with
 
     npm test
+
