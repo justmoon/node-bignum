@@ -229,6 +229,7 @@ protected:
   static NAN_METHOD(BitLength);
   static NAN_METHOD(Bgcd);
   static NAN_METHOD(Bjacobi);
+  static NAN_METHOD(Bsetcompact);
   static Handle<Value> Bop(_NAN_METHOD_ARGS_TYPE args, int op);
 };
 
@@ -283,6 +284,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(tmpl, "bitLength", BitLength);
   NODE_SET_PROTOTYPE_METHOD(tmpl, "gcd", Bgcd);
   NODE_SET_PROTOTYPE_METHOD(tmpl, "jacobi", Bjacobi);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "setCompact", Bsetcompact);
 
   target->Set(NanSymbol("BigNum"), tmpl->GetFunction());
 }
@@ -965,6 +967,31 @@ NAN_METHOD(BigNum::Bjacobi)
   }
 
   NanReturnValue(NanNew<Integer>(res));
+}
+
+NAN_METHOD(BigNum::Bsetcompact)
+{
+  NanScope();
+
+  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+
+  unsigned int nCompact = args[0]->ToUint32()->Value();
+  unsigned int nSize = nCompact >> 24;
+  bool fNegative     =(nCompact & 0x00800000) != 0;
+  unsigned int nWord = nCompact & 0x007fffff;
+  if (nSize <= 3)
+  {
+      nWord >>= 8*(3-nSize);
+      BN_set_word(&bignum->bignum_, nWord);
+  }
+  else
+  {
+      BN_set_word(&bignum->bignum_, nWord);
+      BN_lshift(&bignum->bignum_, &bignum->bignum_, 8*(nSize-3));
+  }
+  BN_set_negative(&bignum->bignum_, fNegative);
+
+  NanReturnValue(args.This());
 }
 
 static NAN_METHOD(SetJSConditioner)
