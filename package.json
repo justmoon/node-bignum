@@ -1,11 +1,11 @@
 {
-  "name" : "bignum",
-  "version" : "0.6.2",
-  "description" : "Arbitrary-precision integer arithmetic using OpenSSL",
-  "main" : "./index.js",
-  "repository" : {
-    "type" : "git",
-    "url" : "http://github.com/justmoon/node-bignum.git"
+  "name": "bignum",
+  "version": "0.7.0",
+  "description": "Arbitrary-precision integer arithmetic using OpenSSL",
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/justmoon/node-bignum.git"
   },
   "keywords": [
     "openssl",
@@ -16,23 +16,26 @@
     "arithmetic",
     "precision"
   ],
-  "author" : {
-    "name" : "Stefan Thomas",
-    "email" : "justmoon@members.fsf.org",
-    "url" : "http://www.justmoon.net"
+  "author": {
+    "name": "Stefan Thomas",
+    "email": "justmoon@members.fsf.org",
+    "url": "http://www.justmoon.net"
   },
-  "devDependencies" : {
-    "expresso" : ">=0.6.0",
-    "binary" : ">=0.1.7",
-    "put" : ">=0.0.5"
+  "dependencies": {
+    "nan": "~1.0.0"
   },
-  "license" : "MIT/X11",
-  "engine" : {
-    "node" : ">=0.8.0"
+  "devDependencies": {
+    "expresso": ">=0.6.0",
+    "binary": ">=0.1.7",
+    "put": ">=0.0.5"
   },
-  "scripts" : {
-    "install" : "node-gyp configure build",
-    "test" : "expresso"
+  "license": "MIT/X11",
+  "engine": {
+    "node": ">=0.8.0"
+  },
+  "scripts": {
+    "install": "node-gyp configure build",
+    "test": "expresso"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"
