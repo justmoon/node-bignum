@@ -4,7 +4,7 @@
 NODE_VERSIONS="\
   master   \
   v0.11.13 \
-  v0.10.26 \
+  v0.10.29 \
   v0.8.26  \
 "
 OUTPUT_PREFIX="bignum-"
