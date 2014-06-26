@@ -229,6 +229,7 @@ protected:
   static NAN_METHOD(BitLength);
   static NAN_METHOD(Bgcd);
   static NAN_METHOD(Bjacobi);
+  static NAN_METHOD(IsBitSet);
   static Handle<Value> Bop(_NAN_METHOD_ARGS_TYPE args, int op);
 };
 
@@ -283,6 +284,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(tmpl, "bitLength", BitLength);
   NODE_SET_PROTOTYPE_METHOD(tmpl, "gcd", Bgcd);
   NODE_SET_PROTOTYPE_METHOD(tmpl, "jacobi", Bjacobi);
+  NODE_SET_PROTOTYPE_METHOD(tmpl, "isbitset", IsBitSet);
 
   target->Set(NanSymbol("BigNum"), tmpl->GetFunction());
 }
@@ -746,6 +748,17 @@ NAN_METHOD(BigNum::Probprime)
   REQ_UINT32_ARG(0, reps);
 
   NanReturnValue(NanNew<Number>(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
+}
+
+NAN_METHOD(BigNum::IsBitSet)
+{
+  NanScope();
+
+  BigNum *bignum = ObjectWrap::Unwrap<BigNum>(args.This());
+
+  REQ_UINT32_ARG(0, n);
+
+  NanReturnValue(NanNew<Number>(BN_is_bit_set(&bignum->bignum_, n)));
 }
 
 NAN_METHOD(BigNum::Bcompare)
