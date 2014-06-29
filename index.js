@@ -316,6 +316,10 @@ BigNum.prototype.nextPrime = function () {
     return num;
 };
 
+BigNum.prototype.isBitSet = function (n) {
+    return this.isbitset(n) === 1;
+};
+
 BigNum.fromBuffer = function (buf, opts) {
     if (!opts) opts = {};
 

@@ -397,6 +397,27 @@ exports.primes = function () {
     });
 };
 
+exports.isbitset = function () {
+    function mkbin(bn) {
+        var bin = '';
+
+        for (var i = 0; i < bn.bitLength(); ++i) {
+            bin += bn.isBitSet(i) ? '1' : '0';
+        }
+
+        return bin;
+    }
+
+    assert.eql(mkbin(bignum( 127)), '1111111');
+    assert.eql(mkbin(bignum(-127)), '1111111');
+
+    assert.eql(mkbin(bignum( 128)), '00000001');
+    assert.eql(mkbin(bignum(-128)), '00000001');
+
+    assert.eql(mkbin(bignum( 129)), '10000001');
+    assert.eql(mkbin(bignum(-129)), '10000001');
+};
+
 exports.invertm = function () {
     // numbers from http://www.itl.nist.gov/fipspubs/fip186.htm appendix 5
     var q = bignum('b20db0b101df0c6624fc1392ba55f77d577481e5', 16);
