@@ -248,7 +248,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NanAssignPersistent<FunctionTemplate>(constructor_template, tmpl);
 
   tmpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tmpl->SetClassName(NanSymbol("BigNum"));
+  tmpl->SetClassName(NanNew("BigNum"));
 
   NODE_SET_METHOD(tmpl, "uprime0", Uprime0);
 
@@ -286,7 +286,7 @@ void BigNum::Initialize(v8::Handle<v8::Object> target) {
   NODE_SET_PROTOTYPE_METHOD(tmpl, "jacobi", Bjacobi);
   NODE_SET_PROTOTYPE_METHOD(tmpl, "isbitset", IsBitSet);
 
-  target->Set(NanSymbol("BigNum"), tmpl->GetFunction());
+  target->Set(NanNew("BigNum"), tmpl->GetFunction());
 }
 
 BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : ObjectWrap ()
@@ -391,8 +391,8 @@ NAN_METHOD(BigNum::New)
       NanReturnUndefined();
     }
 
-    String::Utf8Value str(obj->ToObject()->Get(NanSymbol("num"))->ToString());
-    base = obj->ToObject()->Get(NanSymbol("base"))->ToNumber()->Value();
+    String::Utf8Value str(obj->ToObject()->Get(NanNew("num"))->ToString());
+    base = obj->ToObject()->Get(NanNew("base"))->ToNumber()->Value();
 
     bignum = new BigNum(str, base);
   }
