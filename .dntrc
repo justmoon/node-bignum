@@ -2,10 +2,10 @@
 ## see https://github.com/rvagg/dnt
 
 NODE_VERSIONS="\
-  master   \
-  v0.11.13 \
-  v0.10.29 \
-  v0.8.26  \
+  v0.10.35
+"
+IOJS_VERSIONS="\
+  v1.0.1-release \
 "
 OUTPUT_PREFIX="bignum-"
 TEST_CMD="\
