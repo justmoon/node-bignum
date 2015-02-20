@@ -47,6 +47,10 @@ BigNum.conditionArgs = function(num, base) {
 
 cc.setJSConditioner(BigNum.conditionArgs);
 
+BigNum.isBigNum = function(num) {
+    return Boolean(num && num.badd && num.bsub && num.bmul && num.bdiv && num.bmod);
+};
+
 BigNum.prototype.inspect = function () {
     return '<BigNum ' + this.toString(10) + '>';
 };
@@ -70,7 +74,7 @@ BigNum.prototype.toNumber = function () {
 
 [ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
     BigNum.prototype[op] = function (num) {
-        if (num instanceof BigNum) {
+        if (BigNum.isBigNum(num)) {
             return this['b'+op](num);
         }
         else if (typeof num === 'number') {
@@ -113,7 +117,7 @@ BigNum.prototype.powm = function (num, mod) {
     if ((typeof mod) === 'number' || (typeof mod) === 'string') {
         m = BigNum(mod);
     }
-    else if (mod instanceof BigNum) {
+    else if (BigNum.isBigNum(mod)) {
         m = mod;
     }
 
@@ -124,7 +128,7 @@ BigNum.prototype.powm = function (num, mod) {
         var n = BigNum(num);
         return this.bpowm(n, m);
     }
-    else if (num instanceof BigNum) {
+    else if (BigNum.isBigNum(num)) {
         return this.bpowm(num, m);
     }
 };
@@ -135,7 +139,7 @@ BigNum.prototype.mod = function (num, mod) {
     if ((typeof mod) === 'number' || (typeof mod) === 'string') {
         m = BigNum(mod);
     }
-    else if (mod instanceof BigNum) {
+    else if (BigNum.isBigNum(mod)) {
         m = mod;
     }
 
@@ -146,7 +150,7 @@ BigNum.prototype.mod = function (num, mod) {
         var n = BigNum(num);
         return this.bmod(n, m);
     }
-    else if (num instanceof BigNum) {
+    else if (BigNum.isBigNum(num)) {
         return this.bmod(num, m);
     }
 };
@@ -198,7 +202,7 @@ BigNum.prototype.shiftRight = function (num) {
 };
 
 BigNum.prototype.cmp = function (num) {
-    if (num instanceof BigNum) {
+    if (BigNum.isBigNum(num)) {
         return this.bcompare(num);
     }
     else if (typeof num === 'number') {
@@ -241,7 +245,7 @@ BigNum.prototype.le = function (num) {
 
 'and or xor'.split(' ').forEach(function (name) {
     BigNum.prototype[name] = function (num) {
-        if (num instanceof BigNum) {
+        if (BigNum.isBigNum(num)) {
             return this['b' + name](num);
         }
         else {
@@ -256,7 +260,7 @@ BigNum.prototype.sqrt = function() {
 };
 
 BigNum.prototype.root = function(num) {
-    if (num instanceof BigNum) {
+    if (BigNum.isBigNum(num)) {
         return this.broot(num);
     }
     else {
@@ -275,7 +279,7 @@ BigNum.prototype.rand = function (to) {
         }
     }
     else {
-        var x = to instanceof BigNum
+        var x = BigNum.isBigNum(to)
             ? to.sub(this)
             : BigNum(to).sub(this);
         return x.brand0().add(this);
@@ -283,7 +287,7 @@ BigNum.prototype.rand = function (to) {
 };
 
 BigNum.prototype.invertm = function (mod) {
-    if (mod instanceof BigNum) {
+    if (BigNum.isBigNum(mod)) {
         return this.binvertm(mod);
     }
     else {
@@ -426,7 +430,7 @@ Object.keys(BigNum.prototype).forEach(function (name) {
     BigNum[name] = function (num) {
         var args = [].slice.call(arguments, 1);
 
-        if (num instanceof BigNum) {
+        if (BigNum.isBigNum(num)) {
             return num[name].apply(num, args);
         }
         else {
