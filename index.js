@@ -48,7 +48,15 @@ BigNum.conditionArgs = function(num, base) {
 cc.setJSConditioner(BigNum.conditionArgs);
 
 BigNum.isBigNum = function(num) {
-    return Boolean(num && num.badd && num.bsub && num.bmul && num.bdiv && num.bmod);
+    if (!num) {
+        return false;
+    }
+    for(var key in BigNum.prototype) {
+        if (!num[key]) {
+            return false;
+        }
+    }
+    return true;
 };
 
 BigNum.prototype.inspect = function () {

@@ -1,16 +1,16 @@
 var assert = require('assert');
-var bignum = require('../');
+var BigNum = require('../');
 
 exports.create = function () {
 
-    var validBn = bignum('42');
+    var validBn = BigNum('42');
     var testObj;
 
-    testObj = bignum('123');
-    assert.equal(bignum.isBigNum(testObj), true);
+    testObj = BigNum('123');
+    assert.equal(BigNum.isBigNum(testObj), true);
 
     testObj = {};
-    assert.equal(bignum.isBigNum(testObj), false);
+    assert.equal(BigNum.isBigNum(testObj), false);
 
     testObj = {};
     assert.throws(function() {
@@ -18,7 +18,7 @@ exports.create = function () {
     });
 
     testObj = falsePositive();
-    assert.equal(bignum.isBigNum(testObj), true);
+    assert.equal(BigNum.isBigNum(testObj), true);
 
     // this causes a hard crash, so its disabled for now
     // testObj = falsePositive();
@@ -28,13 +28,11 @@ exports.create = function () {
 };
 
 function falsePositive () {
-    return {
-        badd: true,
-        bsub: true,
-        bmul: true,
-        bdiv: true,
-        bmod: true,
-    };
+    var obj = {};
+    for (var key in BigNum.prototype) {
+        obj[key] = true;
+    }
+    return obj;
 }
 
 if (process.argv[1] === __filename) {
