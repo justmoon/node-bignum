@@ -113,6 +113,11 @@ bignum.prime(bits, safe=true)
 
 Generate a probable prime of length `bits`. If `safe` is true, it will be a "safe" prime of the form p=2p'+1 where p' is also prime.
 
+bignum.isBigNum(num)
+-----------------------------
+
+Return true if `num` is identified as a bignum instance. Otherwise, return false.
+
 methods[1]
 ==========
 
