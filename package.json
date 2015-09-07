@@ -22,7 +22,8 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.0.0"
+    "nan": "^2.0.0",
+    "prebuild": "^2.5.1"
   },
   "devDependencies": {
     "expresso": ">=0.6.0",
@@ -34,8 +35,9 @@
     "node": ">=0.8.0"
   },
   "scripts": {
-    "install": "node-gyp configure build",
-    "test": "expresso"
+    "install": "prebuild --download",
+    "test": "expresso",
+    "prebuild": "prebuild --strip"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"
