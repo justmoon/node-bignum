@@ -292,6 +292,10 @@ exports.and = function () {
     assert.eql(bignum.and(bignum('111112', 16), bignum('111111', 16)).toString(16), '111110');
     assert.eql(bignum.and(bignum('111121', 16), bignum('111111', 16)).toString(16), '111101');
     assert.eql(bignum.and(bignum('111131', 16), bignum('111111', 16)).toString(16), '111111');
+
+    assert.eql(bignum.and(bignum('-111111', 16), bignum('111111', 16)).toString(16), '01');
+    assert.eql(bignum.and(bignum('111111', 16), bignum('-111111', 16)).toString(16), '01');
+    assert.eql(bignum.and(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
 };
 
 exports.or = function () {
@@ -310,6 +314,10 @@ exports.or = function () {
     assert.eql(bignum.or(bignum('111110', 16), bignum('111111', 16)).toString(16), '111111');
     assert.eql(bignum.or(bignum('111112', 16), bignum('111111', 16)).toString(16), '111113');
     assert.eql(bignum.or(bignum('111121', 16), bignum('111111', 16)).toString(16), '111131');
+
+    assert.eql(bignum.or(bignum('-111111', 16), bignum('111111', 16)).toString(16), '-01');
+    assert.eql(bignum.or(bignum('111111', 16), bignum('-111111', 16)).toString(16), '-01');
+    assert.eql(bignum.or(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
 };
 
 exports.xor = function () {
@@ -328,6 +336,10 @@ exports.xor = function () {
     assert.eql(bignum.xor(bignum('111110', 16), bignum('111111', 16)).toString(), 1);
     assert.eql(bignum.xor(bignum('111112', 16), bignum('111111', 16)).toString(), 3);
     assert.eql(bignum.xor(bignum('111121', 16), bignum('111111', 16)).toString(), 0x30);
+
+    assert.eql(bignum.xor(bignum('-111111', 16), bignum('111111', 16)).toString(), -2);
+    assert.eql(bignum.xor(bignum('111111', 16), bignum('-111111', 16)).toString(), -2);
+    assert.eql(bignum.xor(bignum('-111111', 16), bignum('-111111', 16)).toString(), 0);
 };
 
 exports.rand = function () {
