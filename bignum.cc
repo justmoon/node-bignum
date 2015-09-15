@@ -795,6 +795,95 @@ NAN_METHOD(BigNum::Ucompare)
   info.GetReturnValue().Set(Nan::New<Number>(res));
 }
 
+// Utility functions from converting OpenSSL's MPI
+// format to two's complement, which is what bitwise
+// operations are expected to work on
+static void
+mpi2twosComplement(uint8_t *bytes, size_t numBytes)
+{
+  int i;
+
+  bytes[0] &= ~0x80;
+  for (i = 0; i < (int) numBytes; i++) {
+    bytes[i] = ~bytes[i];
+  }
+  for (i = numBytes - 1; i >= 0; i--) {
+    if (bytes[i] == 0xff) {
+      bytes[i] = 0;
+    } else {
+      bytes[i]++;
+      break;
+    }
+  }
+}
+
+static void
+twos_complement2mpi(uint8_t *bytes, size_t numBytes)
+{
+  int i;
+
+  for (i = numBytes - 1; i >= 0; i--) {
+    if (bytes[i] == 0) {
+      bytes[i] = 0xff;
+    } else {
+      bytes[i]--;
+      break;
+    }
+  }
+  for (i = 0; i < (int) numBytes; i++) {
+    bytes[i] = ~bytes[i];
+  }
+  bytes[0] |= 0x80;
+}
+
+const int BN_PAYLOAD_OFFSET = 4;
+
+// Shifts things around in an OpenSSL MPI buffer so that
+// the sizes of bignum operands match
+static void
+shiftSizeAndMSB(uint8_t *bytes, uint8_t *sizeBuffer, size_t offset)
+{
+  memset(bytes + offset, 0, BN_PAYLOAD_OFFSET);
+  memcpy(bytes, sizeBuffer, BN_PAYLOAD_OFFSET);
+
+  // We've copied the size header over; now we just need to move
+  // the MSB signifying negativity if it's present
+  if(bytes[BN_PAYLOAD_OFFSET + offset] & 0x80) {
+    bytes[BN_PAYLOAD_OFFSET] |= 0x80;
+    bytes[BN_PAYLOAD_OFFSET + offset] &= ~0x80;
+  }
+}
+
+static bool
+isMinimumNegativeNumber(uint8_t *bytes, size_t size)
+{
+  if (bytes[0] != 0x80) {
+    return false;
+  }
+
+  for (size_t i = 1; i < size; i++) {
+    if (bytes[i] != 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static void
+swapEndianness(uint8_t *bytes)
+{
+  uint8_t tmp;
+
+  tmp = bytes[0];
+  bytes[0] = bytes[3];
+  bytes[3] = tmp;
+
+  tmp = bytes[1];
+  bytes[1] = bytes[2];
+  bytes[2] = tmp;
+}
+
 Local<Value>
 BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
 {
@@ -803,11 +892,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
 
-  if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
-    // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
-    Nan::ThrowTypeError("Bitwise operations on negative numbers are not supported");
-    return Nan::Undefined();
-  }
+  bool bignumNegative = BN_is_negative(&bignum->bignum_);
+  bool bnNegative = BN_is_negative(&bn->bignum_);
 
   BigNum *res = new BigNum();
 
@@ -815,10 +901,10 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   // Portions Copyright (c) Agora S.A.
   // Licensed under the MIT License.
 
-  int payloadSize = BN_num_bytes(&bignum->bignum_);
-  int maskSize = BN_num_bytes(&bn->bignum_);
+  int payloadSize = BN_bn2mpi(&bignum->bignum_, NULL);
+  int maskSize = BN_bn2mpi(&bn->bignum_, NULL);
 
-  int size = max(payloadSize, maskSize);
+  uint32_t size = max(payloadSize, maskSize);
   int offset = abs(payloadSize - maskSize);
 
   int payloadOffset = 0;
@@ -833,8 +919,25 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   uint8_t* payload = (uint8_t*) calloc(size, sizeof(char));
   uint8_t* mask = (uint8_t*) calloc(size, sizeof(char));
 
-  BN_bn2bin(&bignum->bignum_, (unsigned char*) (payload + payloadOffset));
-  BN_bn2bin(&bn->bignum_, (unsigned char*) (mask + maskOffset));
+  BN_bn2mpi(&bignum->bignum_, payload + payloadOffset);
+  BN_bn2mpi(&bn->bignum_, mask + maskOffset);
+
+  if (payloadSize < maskSize) {
+    shiftSizeAndMSB(payload, mask, payloadOffset);
+  } else {
+    shiftSizeAndMSB(mask, payload, maskOffset);
+  }
+
+  payload += BN_PAYLOAD_OFFSET;
+  mask += BN_PAYLOAD_OFFSET;
+  size -= BN_PAYLOAD_OFFSET;
+
+  if(bignumNegative) {
+    mpi2twosComplement(payload, size);
+  }
+  if(bnNegative) {
+    mpi2twosComplement(mask, size);
+  }
 
   uint32_t* pos32 = (uint32_t*) payload;
   uint32_t* end32 = pos32 + (size / 4);
@@ -856,7 +959,37 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
   }
 
-  BN_bin2bn((unsigned char*) payload, size, &res->bignum_);
+  payload -= BN_PAYLOAD_OFFSET;
+  mask -= BN_PAYLOAD_OFFSET;
+  size += BN_PAYLOAD_OFFSET;
+
+  // If the value is the largest negative number representible by
+  // size bytes, we need to add another byte to the payload buffer,
+  // otherwise OpenSSL's BN_mpi2bn will interpret the number as -0
+  if (isMinimumNegativeNumber(payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET)) {
+    bool bigEndian = (size - BN_PAYLOAD_OFFSET) == *((uint32_t *) payload);
+
+    uint8_t *newPayload = (uint8_t *) calloc(size + 1, 1);
+
+    memcpy(newPayload + 5, payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET);
+    newPayload[BN_PAYLOAD_OFFSET] = 0x80;
+    size++;
+
+    size -= BN_PAYLOAD_OFFSET;
+    memcpy(newPayload, &size, BN_PAYLOAD_OFFSET);
+    size += BN_PAYLOAD_OFFSET;
+
+    if (!bigEndian) {
+      swapEndianness(newPayload);
+    }
+
+    free(payload);
+    payload = newPayload;
+  } else if(payload[BN_PAYLOAD_OFFSET] & 0x80) {
+    twos_complement2mpi(payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET);
+  }
+
+  BN_mpi2bn(payload, size, &res->bignum_);
 
   WRAP_RESULT(res, result);
 
