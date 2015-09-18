@@ -804,7 +804,7 @@ mpi2twosComplement(uint8_t *bytes, size_t numBytes)
   int i;
 
   bytes[0] &= ~0x80;
-  for (i = 0; i < numBytes; i++) {
+  for (i = 0; i < (int) numBytes; i++) {
     bytes[i] = ~bytes[i];
   }
   for (i = numBytes - 1; i >= 0; i--) {
@@ -830,7 +830,7 @@ twos_complement2mpi(uint8_t *bytes, size_t numBytes)
       break;
     }
   }
-  for (i = 0; i < numBytes; i++) {
+  for (i = 0; i < (int) numBytes; i++) {
     bytes[i] = ~bytes[i];
   }
   bytes[0] |= 0x80;
@@ -861,7 +861,7 @@ isMinimumNegativeNumber(uint8_t *bytes, size_t size)
     return false;
   }
 
-  for (int i = 1; i < size; i++) {
+  for (size_t i = 1; i < size; i++) {
     if (bytes[i] != 0) {
       return false;
     }
@@ -904,7 +904,7 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   int payloadSize = BN_bn2mpi(&bignum->bignum_, NULL);
   int maskSize = BN_bn2mpi(&bn->bignum_, NULL);
 
-  int size = max(payloadSize, maskSize);
+  uint32_t size = max(payloadSize, maskSize);
   int offset = abs(payloadSize - maskSize);
 
   int payloadOffset = 0;
