@@ -962,7 +962,7 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   // size bytes, we need to add another byte to the payload buffer,
   // otherwise OpenSSL's BN_mpi2bn will interpret the number as -0
   if (isMinimumNegativeNumber(payload + 4, size - 4)) {
-    bool bigEndian = false;
+    bool bigEndian = (size - 4) == *((uint32_t *) payload);
 
     uint8_t *newPayload = (uint8_t *) calloc(size + 1, 1);
 
