@@ -815,8 +815,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   // Portions Copyright (c) Agora S.A.
   // Licensed under the MIT License.
 
-  int payloadSize = BN_num_bytes(&bignum->bignum_);
-  int maskSize = BN_num_bytes(&bn->bignum_);
+  int payloadSize = BN_bn2mpi(&bignum->bignum_, NULL);
+  int maskSize = BN_bn2mpi(&bn->bignum_, NULL);
 
   int size = max(payloadSize, maskSize);
   int offset = abs(payloadSize - maskSize);
@@ -833,8 +833,20 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   uint8_t* payload = (uint8_t*) calloc(size, sizeof(char));
   uint8_t* mask = (uint8_t*) calloc(size, sizeof(char));
 
-  BN_bn2bin(&bignum->bignum_, (unsigned char*) (payload + payloadOffset));
-  BN_bn2bin(&bn->bignum_, (unsigned char*) (mask + maskOffset));
+  BN_bn2mpi(&bignum->bignum_, payload + payloadOffset);
+  BN_bn2mpi(&bn->bignum_, mask + maskOffset);
+
+  if (payloadSize < maskSize) {
+    memset(payload + payloadOffset, 0, 4);
+    memcpy(payload, mask, 4);
+  } else {
+    memset(mask + maskOffset, 0, 4);
+    memcpy(mask, payload, 4);
+  }
+
+  payload += 4;
+  mask += 4;
+  size -= 4;
 
   uint32_t* pos32 = (uint32_t*) payload;
   uint32_t* end32 = pos32 + (size / 4);
@@ -856,7 +868,11 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
   }
 
-  BN_bin2bn((unsigned char*) payload, size, &res->bignum_);
+  payload -= 4;
+  mask -= 4;
+  size += 4;
+
+  BN_mpi2bn(payload, size, &res->bignum_);
 
   WRAP_RESULT(res, result);
 
