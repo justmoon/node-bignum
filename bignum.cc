@@ -845,6 +845,9 @@ shiftSizeAndMSB(uint8_t *bytes, uint8_t *sizeBuffer, size_t offset)
 {
   memset(bytes + offset, 0, BN_PAYLOAD_OFFSET);
   memcpy(bytes, sizeBuffer, BN_PAYLOAD_OFFSET);
+
+  // We've copied the size header over; now we just need to move
+  // the MSB signifying negativity if it's present
   if(bytes[BN_PAYLOAD_OFFSET + offset] & 0x80) {
     bytes[BN_PAYLOAD_OFFSET] |= 0x80;
     bytes[BN_PAYLOAD_OFFSET + offset] &= ~0x80;
