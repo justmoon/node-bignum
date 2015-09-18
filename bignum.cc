@@ -795,6 +795,60 @@ NAN_METHOD(BigNum::Ucompare)
   info.GetReturnValue().Set(Nan::New<Number>(res));
 }
 
+// Utility functions from converting OpenSSL's MPI
+// format to two's complement, which is what bitwise
+// operations are expected to work on
+static void
+mpi2twosComplement(uint8_t *bytes, size_t numBytes)
+{
+  int i;
+
+  bytes[0] &= ~0x80;
+  for (i = 0; i < numBytes; i++) {
+    bytes[i] = ~bytes[i];
+  }
+  for (i = numBytes - 1; i >= 0; i--) {
+    if (bytes[i] == 0xff) {
+      bytes[i] = 0;
+    } else {
+      bytes[i]++;
+      break;
+    }
+  }
+}
+
+static void
+twos_complement2mpi(uint8_t *bytes, size_t numBytes)
+{
+  int i;
+
+  for (i = numBytes - 1; i >= 0; i--) {
+    if (bytes[i] == 0) {
+      bytes[i] = 0xff;
+    } else {
+      bytes[i]--;
+      break;
+    }
+  }
+  for (i = 0; i < numBytes; i++) {
+    bytes[i] = ~bytes[i];
+  }
+  bytes[0] |= 0x80;
+}
+
+// Shifts things around in an OpenSSL MPI buffer so that
+// the sizes of bignum operands match
+static void
+shiftSizeAndMSB(uint8_t *bytes, uint8_t *sizeBuffer, size_t offset)
+{
+  memset(bytes + offset, 0, 4);
+  memcpy(bytes, sizeBuffer, 4);
+  if(bytes[4 + offset] & 0x80) {
+    bytes[4] |= 0x80;
+    bytes[4 + offset] &= ~0x80;
+  }
+}
+
 Local<Value>
 BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
 {
@@ -803,11 +857,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
 
-  if (BN_is_negative(&bignum->bignum_) || BN_is_negative(&bn->bignum_)) {
-    // Using BN_bn2mpi and BN_bn2mpi would make this more manageable; added in SSLeay 0.9.0
-    Nan::ThrowTypeError("Bitwise operations on negative numbers are not supported");
-    return Nan::Undefined();
-  }
+  bool bignumNegative = BN_is_negative(&bignum->bignum_);
+  bool bnNegative = BN_is_negative(&bn->bignum_);
 
   BigNum *res = new BigNum();
 
@@ -837,16 +888,21 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   BN_bn2mpi(&bn->bignum_, mask + maskOffset);
 
   if (payloadSize < maskSize) {
-    memset(payload + payloadOffset, 0, 4);
-    memcpy(payload, mask, 4);
+    shiftSizeAndMSB(payload, mask, payloadOffset);
   } else {
-    memset(mask + maskOffset, 0, 4);
-    memcpy(mask, payload, 4);
+    shiftSizeAndMSB(mask, payload, maskOffset);
   }
 
   payload += 4;
   mask += 4;
   size -= 4;
+
+  if(bignumNegative) {
+    mpi2twosComplement(payload, size);
+  }
+  if(bnNegative) {
+    mpi2twosComplement(mask, size);
+  }
 
   uint32_t* pos32 = (uint32_t*) payload;
   uint32_t* end32 = pos32 + (size / 4);
@@ -866,6 +922,30 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     case 0: while (pos8 < end8) *(pos8++) &= *(mask8++); break;
     case 1: while (pos8 < end8) *(pos8++) |= *(mask8++); break;
     case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
+  }
+
+  if(payload[0] == 0x80) {
+    uint8_t *newPayload = (uint8_t *) calloc(size + 5, 1);
+    uint8_t tmp;
+
+    memcpy(newPayload + 5, payload, size);
+    newPayload[4] = 0x80;
+    size++;
+    memcpy(newPayload, &size, 4);
+
+    // XXX not needed on big endian systems
+    tmp = newPayload[0];
+    newPayload[0] = newPayload[3];
+    newPayload[3] = tmp;
+
+    tmp = newPayload[1];
+    newPayload[1] = newPayload[2];
+    newPayload[2] = tmp;
+
+    free(payload - 4);
+    payload = newPayload + 4;
+  } else if(payload[0] & 0x80) {
+    twos_complement2mpi(payload, size);
   }
 
   payload -= 4;
