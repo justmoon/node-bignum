@@ -836,16 +836,18 @@ twos_complement2mpi(uint8_t *bytes, size_t numBytes)
   bytes[0] |= 0x80;
 }
 
+const int BN_PAYLOAD_OFFSET = 4;
+
 // Shifts things around in an OpenSSL MPI buffer so that
 // the sizes of bignum operands match
 static void
 shiftSizeAndMSB(uint8_t *bytes, uint8_t *sizeBuffer, size_t offset)
 {
-  memset(bytes + offset, 0, 4);
-  memcpy(bytes, sizeBuffer, 4);
-  if(bytes[4 + offset] & 0x80) {
-    bytes[4] |= 0x80;
-    bytes[4 + offset] &= ~0x80;
+  memset(bytes + offset, 0, BN_PAYLOAD_OFFSET);
+  memcpy(bytes, sizeBuffer, BN_PAYLOAD_OFFSET);
+  if(bytes[BN_PAYLOAD_OFFSET + offset] & 0x80) {
+    bytes[BN_PAYLOAD_OFFSET] |= 0x80;
+    bytes[BN_PAYLOAD_OFFSET + offset] &= ~0x80;
   }
 }
 
@@ -923,9 +925,9 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     shiftSizeAndMSB(mask, payload, maskOffset);
   }
 
-  payload += 4;
-  mask += 4;
-  size -= 4;
+  payload += BN_PAYLOAD_OFFSET;
+  mask += BN_PAYLOAD_OFFSET;
+  size -= BN_PAYLOAD_OFFSET;
 
   if(bignumNegative) {
     mpi2twosComplement(payload, size);
@@ -954,25 +956,25 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
   }
 
-  payload -= 4;
-  mask -= 4;
-  size += 4;
+  payload -= BN_PAYLOAD_OFFSET;
+  mask -= BN_PAYLOAD_OFFSET;
+  size += BN_PAYLOAD_OFFSET;
 
   // If the value is the largest negative number representible by
   // size bytes, we need to add another byte to the payload buffer,
   // otherwise OpenSSL's BN_mpi2bn will interpret the number as -0
-  if (isMinimumNegativeNumber(payload + 4, size - 4)) {
-    bool bigEndian = (size - 4) == *((uint32_t *) payload);
+  if (isMinimumNegativeNumber(payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET)) {
+    bool bigEndian = (size - BN_PAYLOAD_OFFSET) == *((uint32_t *) payload);
 
     uint8_t *newPayload = (uint8_t *) calloc(size + 1, 1);
 
-    memcpy(newPayload + 5, payload + 4, size - 4);
-    newPayload[4] = 0x80;
+    memcpy(newPayload + 5, payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET);
+    newPayload[BN_PAYLOAD_OFFSET] = 0x80;
     size++;
 
-    size -= 4;
-    memcpy(newPayload, &size, 4);
-    size += 4;
+    size -= BN_PAYLOAD_OFFSET;
+    memcpy(newPayload, &size, BN_PAYLOAD_OFFSET);
+    size += BN_PAYLOAD_OFFSET;
 
     if (!bigEndian) {
       swapEndianness(newPayload);
@@ -980,8 +982,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
 
     free(payload);
     payload = newPayload;
-  } else if(payload[4] & 0x80) {
-    twos_complement2mpi(payload + 4, size - 4);
+  } else if(payload[BN_PAYLOAD_OFFSET] & 0x80) {
+    twos_complement2mpi(payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET);
   }
 
   BN_mpi2bn(payload, size, &res->bignum_);
