@@ -849,6 +849,36 @@ shiftSizeAndMSB(uint8_t *bytes, uint8_t *sizeBuffer, size_t offset)
   }
 }
 
+static bool
+isMinimumNegativeNumber(uint8_t *bytes, size_t size)
+{
+  if (bytes[0] != 0x80) {
+    return false;
+  }
+
+  for (int i = 1; i < size; i++) {
+    if (bytes[i] != 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static void
+swapEndianness(uint8_t *bytes)
+{
+  uint8_t tmp;
+
+  tmp = bytes[0];
+  bytes[0] = bytes[3];
+  bytes[3] = tmp;
+
+  tmp = bytes[1];
+  bytes[1] = bytes[2];
+  bytes[2] = tmp;
+}
+
 Local<Value>
 BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
 {
@@ -924,33 +954,35 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     case 2: while (pos8 < end8) *(pos8++) ^= *(mask8++); break;
   }
 
-  if(payload[0] == 0x80) {
-    uint8_t *newPayload = (uint8_t *) calloc(size + 5, 1);
-    uint8_t tmp;
-
-    memcpy(newPayload + 5, payload, size);
-    newPayload[4] = 0x80;
-    size++;
-    memcpy(newPayload, &size, 4);
-
-    // XXX not needed on big endian systems
-    tmp = newPayload[0];
-    newPayload[0] = newPayload[3];
-    newPayload[3] = tmp;
-
-    tmp = newPayload[1];
-    newPayload[1] = newPayload[2];
-    newPayload[2] = tmp;
-
-    free(payload - 4);
-    payload = newPayload + 4;
-  } else if(payload[0] & 0x80) {
-    twos_complement2mpi(payload, size);
-  }
-
   payload -= 4;
   mask -= 4;
   size += 4;
+
+  // If the value is the largest negative number representible by
+  // size bytes, we need to add another byte to the payload buffer,
+  // otherwise OpenSSL's BN_mpi2bn will interpret the number as -0
+  if (isMinimumNegativeNumber(payload + 4, size - 4)) {
+    bool bigEndian = false;
+
+    uint8_t *newPayload = (uint8_t *) calloc(size + 1, 1);
+
+    memcpy(newPayload + 5, payload + 4, size - 4);
+    newPayload[4] = 0x80;
+    size++;
+
+    size -= 4;
+    memcpy(newPayload, &size, 4);
+    size += 4;
+
+    if (!bigEndian) {
+      swapEndianness(newPayload);
+    }
+
+    free(payload);
+    payload = newPayload;
+  } else if(payload[4] & 0x80) {
+    twos_complement2mpi(payload + 4, size - 4);
+  }
 
   BN_mpi2bn(payload, size, &res->bignum_);
 
