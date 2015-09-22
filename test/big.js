@@ -9,7 +9,7 @@ exports.create = function () {
         new bignum('55555555555555555555555555').toString(),
         '55555555555555555555555555'
     );
-    
+
     assert.eql(Number(bignum('1e+100').toString()), 1e+100);
     assert.eql(bignum('1e+100').bitLength(), 333);
     assert.eql(Number(bignum('1.23e+45').toString()), 1.23e+45);
@@ -19,7 +19,7 @@ exports.create = function () {
             Math.floor(1.23456 * Math.pow(10,i))
         );
     }
-    
+
     assert.eql(bignum('1.23e-45').toString(), '0');
 
     assert.throws(function() { bignum(undefined); });
@@ -38,7 +38,7 @@ exports.add = function () {
             assert.eql(bignum.add(i, j).toString(), ks);
         }
     }
-    
+
     assert.eql(
         bignum(
             '201781752444966478956292456789265633588628356858680927185287861892'
@@ -67,7 +67,7 @@ exports.sub = function () {
             assert.eql(bignum.sub(i, j).toString(), ks);
         }
     }
-    
+
     assert.eql(
         bignum(
             '635849762218952604062459342660379446997761295162166888134051068531'
@@ -96,7 +96,7 @@ exports.mul = function () {
             assert.eql(bignum.mul(i, j).toString(), ks);
         }
     }
-    
+
     assert.eql(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
@@ -114,7 +114,7 @@ exports.mul = function () {
         + '58079529848220802017396422115936618644438110463469902675126288489182'
         + '82'
     );
-    
+
     assert.eql(
         bignum('10000000000000000000000000000').mul(-123).toString(),
         '-1230000000000000000000000000000'
@@ -136,7 +136,7 @@ exports.div = function () {
             }
         }
     }
-    
+
     assert.eql(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
@@ -162,7 +162,7 @@ exports.abs = function () {
         + '49418901907515982293057185872800948523748982913862689675614187389583'
         + '37632249177044975686477011571044266'
     );
-    
+
     assert.eql(
         bignum(
             '-43359329001059048967113581928625959342654930666632400867978208429'
@@ -186,7 +186,7 @@ exports.neg = function () {
         + '64941890190751598229305718587280094852374898291386268967561418738958'
         + '337632249177044975686477011571044266'
     );
-    
+
     assert.eql(
         bignum(
             '-43359329001059048967113581928625959342654930666632400867978208429'
@@ -213,7 +213,7 @@ exports.mod = function () {
             }
         }
     }
-    
+
     assert.eql(
         bignum('486541542410442549118519277483401413')
             .mod('1802185856709793916115771381388554')
@@ -226,7 +226,7 @@ exports.mod = function () {
 exports.cmp = function () {
     for (var i = -10; i <= 10; i++) {
         var bi = bignum(i);
-        
+
         for (var j = -10; j <= 10; j++) {
             [ j, bignum(j) ].forEach(function (jj) {
                 assert.eql(bi.lt(jj), i < j);
@@ -251,7 +251,7 @@ exports.powm = function () {
             );
         });
     });
-    
+
     assert.eql(
         bignum('624387628734576238746587435')
             .powm(2732, '457676874367586')
@@ -268,7 +268,7 @@ exports.pow = function () {
             '12345678987654321'
         );
     });
-    
+
     assert.eql(
         bignum('3487438743234789234879').pow(22).toString(),
         '861281136448465709000943928980299119292959327175552412961995332536782980636409994680542395362634321718164701236369695670918217801815161694902810780084448291245512671429670376051205638247649202527956041058237646154753587769450973231275642223337064356190945030999709422512682440247294915605076918925272414789710234097768366414400280590151549041536921814066973515842848197905763447515344747881160891303219471850554054186959791307149715821010152303317328860351766337716947079041'
@@ -334,10 +334,10 @@ exports.rand = function () {
     for (var i = 1; i < 1000; i++) {
         var x = bignum(i).rand().toNumber();
         assert.ok(0 <= x  && x < i);
-        
+
         var y = bignum(i).rand(i + 10).toNumber();
         assert.ok(i <= y && y < i + 10);
-        
+
         var z = bignum.rand(i, i + 10).toNumber();
         assert.ok(i <= z && z < i + 10);
     }
@@ -348,7 +348,7 @@ exports.primes = function () {
     for (var i = 0; i <= 10; i++) {
         assert.eql(bignum(i).probPrime(), ps[i] ? true : false);
     }
-    
+
     var ns = {
         2 : 3,
         3 : 5,
@@ -359,28 +359,28 @@ exports.primes = function () {
         961748927 : '961748941',
         9987704933 : '9987704953',
     };
-    
+
     Object.keys(ns).forEach(function (n) {
         assert.eql(
             bignum(n).nextPrime().toString(),
             ns[n].toString()
         );
     });
-    
+
     var uniques = [
         '3', '11', '37', '101', '9091', '9901', '333667', '909091', '99990001',
         '999999000001', '9999999900000001', '909090909090909091',
         '1111111111111111111', '11111111111111111111111',
         '900900900900990990990991',
     ];
-    
+
     var wagstaff = [
         '3', '11', '43', '683', '2731', '43691', '174763', '2796203',
         '715827883', '2932031007403', '768614336404564651',
         '201487636602438195784363', '845100400152152934331135470251',
         '56713727820156410577229101238628035243',
     ];
-    
+
     var big = [
         '4669523849932130508876392554713407521319117239637943224980015676156491',
         '54875133386847519273109693154204970395475080920935355580245252923343305939004903',
@@ -388,7 +388,7 @@ exports.primes = function () {
         '2074722246773485207821695222107608587480996474721117292752992589912196684750549658310084416732550077',
         '5628290459057877291809182450381238927697314822133923421169378062922140081498734424133112032854812293',
     ];
-    
+
     [ uniques, wagstaff, big ].forEach(function (xs) {
         xs.forEach(function (x) {
             var p = bignum(x).probPrime();
@@ -429,7 +429,7 @@ exports.invertm = function () {
 exports.shift = function () {
     assert.eql(bignum(37).shiftLeft(2).toString(), (37 << 2).toString()); // 148
     assert.eql(bignum(37).shiftRight(2).toString(), (37 >> 2).toString()); // 9
-    
+
     assert.equal(
         bignum(2).pow(Math.pow(2,10)).shiftRight(4).toString(),
         bignum(2).pow(Math.pow(2,10)).div(16).toString()
@@ -441,7 +441,7 @@ exports.mod = function () {
     assert.eql(
         bignum('1234567').mod(
             bignum('4321')
-        ).toNumber(), 
+        ).toNumber(),
         1234567 % 4321
     );
 };
@@ -450,11 +450,11 @@ exports.endian = function () {
     var a = bignum(0x0102030405);
     assert.eql(a.toBuffer({ endian: 'big', size: 2 }).toString('hex'), '000102030405');
     assert.eql(a.toBuffer({ endian: 'little', size: 2 }).toString('hex'), '010003020504');
-    
+
     var b = bignum(0x0102030405);
     assert.eql(a.toBuffer({ endian: 'big', size: 'auto' }).toString('hex'), '0102030405');
     assert.eql(a.toBuffer({ endian: 'little', size: 'auto' }).toString('hex'), '0504030201');
-    
+
     var c = new Buffer("000102030405", 'hex');
     assert.eql(bignum.fromBuffer(c, { endian: 'big', size: 'auto'}).toString(16), "0102030405");
     assert.eql(bignum.fromBuffer(c, { endian: 'little', size: 'auto'}).toString(16), "050403020100");
@@ -466,7 +466,7 @@ exports.bitlength = function () {
       + '2446494189019075159822930571858728009485237489829138626896756141'
       + '873895833763224917704497568647701157104426'
     ).bitLength();
-    
+
     assert.equal(bl > 0, true);
 };
 
@@ -503,6 +503,14 @@ exports.jacobi = function () {
     b2 = bignum('111');
     assert.equal(b1.jacobi(b2), 1);
 };
+
+exports.base36 = function() {
+  assert.equal(bignum('-36').toString(36), '-10');
+  assert.equal(bignum('0').toString(36), '0');
+  assert.equal(bignum('36').toString(36), '10');
+  assert.equal(bignum('1441584286538165983').toString(36), 'ayaezapdjh7j');
+  assert.equal(bignum('144158428653816598323456018373').toString(36), 'dz5eh35mzt8b2m28urp');
+}
 
 if (process.argv[1] === __filename) {
     assert.eql = assert.deepEqual;

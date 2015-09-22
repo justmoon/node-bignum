@@ -177,6 +177,64 @@ endBN_jacobi:
   return returnvalue;
 }
 
+static const char ALPHANUMERIC[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char *BN_bn2base36(const BIGNUM *a)
+{
+  int i = 0, num, ok = 0;
+  char *buf = NULL;
+  char *p;
+  BIGNUM *t = NULL;
+  BN_ULONG *bn_buff, *lp;
+
+  i = BN_num_bits(a);
+#define BN_BASE36_NUM 5 // log(36)
+
+  num = (i + BN_BASE36_NUM + 1) / BN_BASE36_NUM;
+  bn_buff = (BN_ULONG*) OPENSSL_malloc(num * sizeof(BN_ULONG));
+  buf = (char*) OPENSSL_malloc((num + 2) * sizeof(char));
+
+  if (buf == NULL || bn_buff == NULL) {
+    Nan::ThrowError("could not allocate memory for conversion");
+    goto err;
+  }
+  if ((t = BN_dup(a)) == NULL)
+    goto err;
+
+  p = buf;
+  lp = bn_buff;
+
+  if (BN_is_zero(t)) {
+    *(p++) = '0';
+    *(p++) = '\0';
+  } else {
+    if (BN_is_negative(t))
+      *(p++) = '-';
+
+    while (!BN_is_zero(t)) {
+      *lp = BN_div_word(t, 36UL);
+      lp++;
+    }
+    lp--;
+
+    while (lp != bn_buff) {
+      *(p++) = ALPHANUMERIC[*lp--];
+    }
+
+    // Get the remainder from the bottom of the stack
+    *(p++) = ALPHANUMERIC[*lp];
+    *(p++) = '\0';
+  }
+
+  ok = 1;
+err:
+  OPENSSL_free(bn_buff);
+  BN_free(t);
+  if (ok)
+    return buf;
+  OPENSSL_free(buf);
+  return NULL;
+}
+
 class BigNum : public Nan::ObjectWrap {
 public:
   static void Initialize(Local<Object> target);
@@ -437,6 +495,9 @@ NAN_METHOD(BigNum::ToString)
     break;
   case 16:
     to = BN_bn2hex(&bignum->bignum_);
+    break;
+  case 36:
+    to = BN_bn2base36(&bignum->bignum_);
     break;
   default:
     Nan::ThrowError("Invalid base, only 10 and 16 are supported");
