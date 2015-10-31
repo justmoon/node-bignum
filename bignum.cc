@@ -489,19 +489,63 @@ NAN_METHOD(BigNum::ToString)
     base = tbase;
   }
   char *to = NULL;
-  switch (base) {
-  case 10:
-    to = BN_bn2dec(&bignum->bignum_);
-    break;
-  case 16:
-    to = BN_bn2hex(&bignum->bignum_);
-    break;
-  case 36:
-    to = BN_bn2base36(&bignum->bignum_);
-    break;
-  default:
-    Nan::ThrowError("Invalid base, only 10 and 16 are supported");
-    return;
+  if (base == 2) {
+    if (BN_is_zero(&bignum->bignum_)) {
+      to = (char*) OPENSSL_malloc(2*sizeof(char));
+      to[0] = '0';
+      to[1] = '\0';
+    } else {
+      unsigned char *binary = (unsigned char*) OPENSSL_malloc(BN_num_bytes(&bignum->bignum_)*sizeof(unsigned char));
+      int len = BN_bn2bin(&bignum->bignum_, binary);
+      to = (char*) OPENSSL_malloc((len*8+2)*sizeof(char));
+      int offset = 0;
+      if (BN_is_negative(&bignum->bignum_)) {
+        to[0] = '-';
+        offset--;
+      }
+      unsigned char x = binary[0];
+      while (!(x & 128) && x) {
+        x = x << 1;
+        offset++;
+      }
+      for (int i = 0; i < len; i++) {
+        unsigned char bits = binary[i];
+
+        int j=7;
+        while(bits) {
+          if (bits & 1) {
+            to[8*i+j-offset] = '1';
+          } else {
+            to[8*i+j-offset] = '0';
+          }
+          bits = bits >> 1;
+          j--;
+        }
+        if (i > 0) {
+          while (j >= 0) {
+            to[8*i+j-offset] = '0';
+            j--;
+          }
+        }
+      }
+      to[8*len-offset] = '\0';
+      OPENSSL_free(binary);
+    }
+  } else {
+    switch (base) {
+    case 10:
+      to = BN_bn2dec(&bignum->bignum_);
+      break;
+    case 16:
+      to = BN_bn2hex(&bignum->bignum_);
+      break;
+    case 36:
+      to = BN_bn2base36(&bignum->bignum_);
+      break;
+    default:
+      Nan::ThrowError("Invalid base, only 2, 10, 16 and 36 are supported");
+      return;
+    }
   }
 
   Local<Value> result = Nan::New<String>(to).ToLocalChecked();
