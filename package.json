@@ -22,7 +22,7 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.0.0"
+    "nan": "^2.3.4"
   },
   "devDependencies": {
     "expresso": ">=0.6.0",
