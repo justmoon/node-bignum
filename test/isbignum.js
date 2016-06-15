@@ -1,31 +1,33 @@
-var assert = require('assert');
 var BigNum = require('../');
+var test = require('tap').test;
 
-exports.create = function () {
+test('create', function (t) {
 
     var validBn = BigNum('42');
     var testObj;
 
     testObj = BigNum('123');
-    assert.equal(BigNum.isBigNum(testObj), true);
+    t.equal(BigNum.isBigNum(testObj), true);
 
     testObj = {};
-    assert.equal(BigNum.isBigNum(testObj), false);
+    t.equal(BigNum.isBigNum(testObj), false);
 
     testObj = {};
-    assert.throws(function() {
+    t.throws(function() {
         validBn.add(testObj)
     });
 
     testObj = falsePositive();
-    assert.equal(BigNum.isBigNum(testObj), true);
+    t.equal(BigNum.isBigNum(testObj), true);
 
     // this causes a hard crash, so its disabled for now
     // testObj = falsePositive();
-    // assert.throws(function() {
+    // t.throws(function() {
     //     validBn.add(testObj)
     // });
-};
+
+    t.end()
+});
 
 function falsePositive () {
     var obj = {};
@@ -33,15 +35,4 @@ function falsePositive () {
         obj[key] = true;
     }
     return obj;
-}
-
-if (process.argv[1] === __filename) {
-    assert.eql = assert.deepEqual;
-    Object.keys(exports).forEach(function (ex) {
-        exports[ex]();
-    });
-
-    if ("function" === typeof gc) {
-        gc();
-    }
 }

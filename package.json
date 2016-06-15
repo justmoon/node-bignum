@@ -22,11 +22,10 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.3.4"
+    "nan": "^2.3.4",
+    "tap": "~5.7.2"
   },
   "devDependencies": {
-    "expresso": ">=0.6.0",
-    "binary": ">=0.1.7",
     "put": ">=0.0.5"
   },
   "license": "MIT",
@@ -35,7 +34,7 @@
   },
   "scripts": {
     "install": "node-gyp configure build",
-    "test": "expresso"
+    "test": "tap test/*.js"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"

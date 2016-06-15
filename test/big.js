@@ -1,45 +1,47 @@
-var assert = require('assert');
 var bignum = require('../');
+var test = require('tap').test;
 
-exports.create = function () {
-    assert.eql(bignum(1337).toString(), '1337');
-    assert.eql(bignum('1337').toString(), '1337');
-    assert.eql(new bignum('100').toString(), '100');
-    assert.eql(
+test('create', function (t) {
+    t.deepEqual(bignum(1337).toString(), '1337');
+    t.deepEqual(bignum('1337').toString(), '1337');
+    t.deepEqual(new bignum('100').toString(), '100');
+    t.deepEqual(
         new bignum('55555555555555555555555555').toString(),
         '55555555555555555555555555'
     );
     
-    assert.eql(Number(bignum('1e+100').toString()), 1e+100);
-    assert.eql(bignum('1e+100').bitLength(), 333);
-    assert.eql(Number(bignum('1.23e+45').toString()), 1.23e+45);
+    t.deepEqual(Number(bignum('1e+100').toString()), 1e+100);
+    t.deepEqual(bignum('1e+100').bitLength(), 333);
+    t.deepEqual(Number(bignum('1.23e+45').toString()), 1.23e+45);
     for (var i = 0; i < 10; i++) {
-        assert.eql(
+        t.deepEqual(
             bignum('1.23456e+' + i).toString(),
             Math.floor(1.23456 * Math.pow(10,i))
         );
     }
     
-    assert.eql(bignum('1.23e-45').toString(), '0');
+    t.deepEqual(bignum('1.23e-45').toString(), '0');
 
-    assert.throws(function() { bignum(undefined); });
-    assert.throws(function() { bignum(null); });
-};
+    t.throws(function() { bignum(undefined); });
+    t.throws(function() { bignum(null); });
 
-exports.add = function () {
+    t.end();
+})
+
+test('add', function (t) {
     for (var i = -10; i < 10; i++) {
         for (var j = -10; j < 10; j++) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i + j).toString();
-            assert.eql(bignum(i).add(j).toString(), ks);
-            assert.eql(bignum(i).add(js).toString(), ks);
-            assert.eql(bignum(i).add(bignum(j)).toString(), ks);
-            assert.eql(bignum.add(i, j).toString(), ks);
+            t.deepEqual(bignum(i).add(j).toString(), ks);
+            t.deepEqual(bignum(i).add(js).toString(), ks);
+            t.deepEqual(bignum(i).add(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.add(i, j).toString(), ks);
         }
     }
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '201781752444966478956292456789265633588628356858680927185287861892'
             + '9889675589272409635031813235465496971529430565627918846694860512'
@@ -53,22 +55,24 @@ exports.add = function () {
         + '41759492475205227039558501334339864668016751861424100681899362117762'
         + '365770656374869982874551457998960521'
     );
-};
 
-exports.sub = function () {
+    t.end();
+})
+
+test('sub', function (t) {
     for (var i = -10; i < 10; i++) {
         for (var j = -10; j < 10; j++) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i - j).toString();
-            assert.eql(bignum(i).sub(j).toString(), ks);
-            assert.eql(bignum(i).sub(js).toString(), ks);
-            assert.eql(bignum(i).sub(bignum(j)).toString(), ks);
-            assert.eql(bignum.sub(i, j).toString(), ks);
+            t.deepEqual(bignum(i).sub(j).toString(), ks);
+            t.deepEqual(bignum(i).sub(js).toString(), ks);
+            t.deepEqual(bignum(i).sub(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.sub(i, j).toString(), ks);
         }
     }
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '635849762218952604062459342660379446997761295162166888134051068531'
             + '9813941775949841573516110003093332652267534768664621969514455380'
@@ -82,22 +86,24 @@ exports.sub = function () {
         + '25421067983920123402400825483861704741143034417216862503145088348700'
         + '309898604710287263494312265061500182'
     );
-};
 
-exports.mul = function () {
+    t.end();
+})
+
+test('mul', function (t) {
     for (var i = -10; i < 10; i++) {
         for (var j = -10; j < 10; j++) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i * j).toString();
-            assert.eql(bignum(i).mul(j).toString(), ks);
-            assert.eql(bignum(i).mul(js).toString(), ks);
-            assert.eql(bignum(i).mul(bignum(j)).toString(), ks);
-            assert.eql(bignum.mul(i, j).toString(), ks);
+            t.deepEqual(bignum(i).mul(j).toString(), ks);
+            t.deepEqual(bignum(i).mul(js).toString(), ks);
+            t.deepEqual(bignum(i).mul(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.mul(i, j).toString(), ks);
         }
     }
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
             + '2446494189019075159822930571858728009485237489829138626896756141'
@@ -115,13 +121,15 @@ exports.mul = function () {
         + '82'
     );
     
-    assert.eql(
+    t.deepEqual(
         bignum('10000000000000000000000000000').mul(-123).toString(),
         '-1230000000000000000000000000000'
     );
-};
 
-exports.div = function () {
+    t.end();
+})
+
+test('div', function (t) {
     for (var i = -10; i < 10; i++) {
         for (var j = -10; j < 10; j++) {
             var is = i.toString();
@@ -129,15 +137,15 @@ exports.div = function () {
             var round = ((i/j) < 0) ? Math.ceil : Math.floor;
             var ks = round(i / j).toString();
             if (ks.match(/^-?\d+$/)) { // ignore exceptions
-                assert.eql(bignum(i).div(j).toString(), ks);
-                assert.eql(bignum(i).div(js).toString(), ks);
-                assert.eql(bignum(i).div(bignum(j)).toString(), ks);
-                assert.eql(bignum.div(i, j).toString(), ks);
+                t.deepEqual(bignum(i).div(j).toString(), ks);
+                t.deepEqual(bignum(i).div(js).toString(), ks);
+                t.deepEqual(bignum(i).div(bignum(j)).toString(), ks);
+                t.deepEqual(bignum.div(i, j).toString(), ks);
             }
         }
     }
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
             + '2446494189019075159822930571858728009485237489829138626896756141'
@@ -149,10 +157,12 @@ exports.div = function () {
         ).toString(),
         '33'
     );
-};
 
-exports.abs = function () {
-    assert.eql(
+    t.end();
+})
+
+test('abs', function (t) {
+    t.deepEqual(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
             + '2446494189019075159822930571858728009485237489829138626896756141'
@@ -163,7 +173,7 @@ exports.abs = function () {
         + '37632249177044975686477011571044266'
     );
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '-43359329001059048967113581928625959342654930666632400867978208429'
             + '2244649418901907515982293057185872800948523748982913862689675614'
@@ -173,10 +183,12 @@ exports.abs = function () {
         + '49418901907515982293057185872800948523748982913862689675614187389583'
         + '37632249177044975686477011571044266'
     );
-};
 
-exports.neg = function () {
-    assert.eql(
+    t.end();
+})
+
+test('neg', function (t) {
+    t.deepEqual(
         bignum(
             '433593290010590489671135819286259593426549306666324008679782084292'
             + '2446494189019075159822930571858728009485237489829138626896756141'
@@ -187,7 +199,7 @@ exports.neg = function () {
         + '337632249177044975686477011571044266'
     );
     
-    assert.eql(
+    t.deepEqual(
         bignum(
             '-43359329001059048967113581928625959342654930666632400867978208429'
             + '2244649418901907515982293057185872800948523748982913862689675614'
@@ -197,180 +209,198 @@ exports.neg = function () {
         + '49418901907515982293057185872800948523748982913862689675614187389583'
         + '37632249177044975686477011571044266'
     );
-};
 
-exports.mod = function () {
+    t.end();
+})
+
+test('mod', function (t) {
     for (var i = 0; i < 10; i++) {
         for (var j = 0; j < 10; j++) {
             var is = i.toString();
             var js = j.toString();
             if (!isNaN(i % j)) {
                 var ks = (i % j).toString();
-                assert.eql(bignum(i).mod(j).toString(), ks);
-                assert.eql(bignum(i).mod(js).toString(), ks);
-                assert.eql(bignum(i).mod(bignum(j)).toString(), ks);
-                assert.eql(bignum.mod(i, j).toString(), ks);
+                t.deepEqual(bignum(i).mod(j).toString(), ks);
+                t.deepEqual(bignum(i).mod(js).toString(), ks);
+                t.deepEqual(bignum(i).mod(bignum(j)).toString(), ks);
+                t.deepEqual(bignum.mod(i, j).toString(), ks);
             }
         }
     }
     
-    assert.eql(
+    t.deepEqual(
         bignum('486541542410442549118519277483401413')
             .mod('1802185856709793916115771381388554')
             .toString()
         ,
         '1753546955507985683376775889880387'
     );
-};
 
-exports.cmp = function () {
+    t.end();
+})
+
+test('cmp', function (t) {
     for (var i = -10; i <= 10; i++) {
         var bi = bignum(i);
         
         for (var j = -10; j <= 10; j++) {
             [ j, bignum(j) ].forEach(function (jj) {
-                assert.eql(bi.lt(jj), i < j);
-                assert.eql(bi.le(jj), i <= j);
-                assert.eql(bi.eq(jj), i === j);
-                assert.eql(bi.ne(jj), i !== j);
-                assert.eql(bi.gt(jj), i > j);
-                assert.eql(bi.ge(jj), i >= j);
+                t.deepEqual(bi.lt(jj), i < j);
+                t.deepEqual(bi.le(jj), i <= j);
+                t.deepEqual(bi.eq(jj), i === j);
+                t.deepEqual(bi.ne(jj), i !== j);
+                t.deepEqual(bi.gt(jj), i > j);
+                t.deepEqual(bi.ge(jj), i >= j);
             });
         }
     }
-};
 
-exports.powm = function () {
+    t.end();
+})
+
+test('powm', function (t) {
     var twos = [ 2, '2', bignum(2), bignum('2') ]
     var tens = [ 100000, '100000', bignum(100000), bignum(100000) ];
     twos.forEach(function (two) {
-        tens.forEach(function (t) {
-            assert.eql(
-                bignum('111111111').powm(two, t).toString(),
+        tens.forEach(function (ten) {
+            t.deepEqual(
+                bignum('111111111').powm(two, ten).toString(),
                 '54321'
             );
         });
     });
     
-    assert.eql(
+    t.deepEqual(
         bignum('624387628734576238746587435')
             .powm(2732, '457676874367586')
             .toString()
         ,
         '335581885073251'
     );
-};
 
-exports.pow = function () {
+    t.end();
+})
+
+test('pow', function (t) {
     [ 2, '2', bignum(2), bignum('2') ].forEach(function (two) {
-        assert.eql(
+        t.deepEqual(
             bignum('111111111').pow(two).toString(),
             '12345678987654321'
         );
     });
     
-    assert.eql(
+    t.deepEqual(
         bignum('3487438743234789234879').pow(22).toString(),
         '861281136448465709000943928980299119292959327175552412961995332536782980636409994680542395362634321718164701236369695670918217801815161694902810780084448291245512671429670376051205638247649202527956041058237646154753587769450973231275642223337064356190945030999709422512682440247294915605076918925272414789710234097768366414400280590151549041536921814066973515842848197905763447515344747881160891303219471850554054186959791307149715821010152303317328860351766337716947079041'
     );
-};
 
-exports.and = function () {
+    t.end();
+})
+
+test('and', function (t) {
     for (var i = 0; i < 256; i += 7) {
         for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i & j).toString();
-            assert.eql(bignum(i).and(j).toString(), ks);
-            assert.eql(bignum(i).and(js).toString(), ks);
-            assert.eql(bignum(i).and(bignum(j)).toString(), ks);
-            assert.eql(bignum.and(i, j).toString(), ks);
+            t.deepEqual(bignum(i).and(j).toString(), ks);
+            t.deepEqual(bignum(i).and(js).toString(), ks);
+            t.deepEqual(bignum(i).and(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.and(i, j).toString(), ks);
 
-            assert.eql(bignum(-1 * i).and(j).toString(), (-1 * i) & j);
-            assert.eql(bignum(i).and(-1 * j).toString(), i & (-1 * j));
-            assert.eql(bignum(-1 * i).and(-1 * j).toString(), (-1 * i) & (-1 * j));
+            t.deepEqual(bignum(-1 * i).and(j).toString(), ((-1 * i) & j).toString());
+            t.deepEqual(bignum(i).and(-1 * j).toString(), (i & (-1 * j)).toString());
+            t.deepEqual(bignum(-1 * i).and(-1 * j).toString(), ((-1 * i) & (-1 * j)).toString());
         }
     }
-    assert.eql(bignum.and(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
-    assert.eql(bignum.and(bignum('111110', 16), bignum('111111', 16)).toString(16), '111110');
-    assert.eql(bignum.and(bignum('111112', 16), bignum('111111', 16)).toString(16), '111110');
-    assert.eql(bignum.and(bignum('111121', 16), bignum('111111', 16)).toString(16), '111101');
-    assert.eql(bignum.and(bignum('111131', 16), bignum('111111', 16)).toString(16), '111111');
+    t.deepEqual(bignum.and(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
+    t.deepEqual(bignum.and(bignum('111110', 16), bignum('111111', 16)).toString(16), '111110');
+    t.deepEqual(bignum.and(bignum('111112', 16), bignum('111111', 16)).toString(16), '111110');
+    t.deepEqual(bignum.and(bignum('111121', 16), bignum('111111', 16)).toString(16), '111101');
+    t.deepEqual(bignum.and(bignum('111131', 16), bignum('111111', 16)).toString(16), '111111');
 
-    assert.eql(bignum.and(bignum('-111111', 16), bignum('111111', 16)).toString(16), '01');
-    assert.eql(bignum.and(bignum('111111', 16), bignum('-111111', 16)).toString(16), '01');
-    assert.eql(bignum.and(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
-};
+    t.deepEqual(bignum.and(bignum('-111111', 16), bignum('111111', 16)).toString(16), '01');
+    t.deepEqual(bignum.and(bignum('111111', 16), bignum('-111111', 16)).toString(16), '01');
+    t.deepEqual(bignum.and(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
 
-exports.or = function () {
+    t.end();
+})
+
+test('or', function (t) {
     for (var i = 0; i < 256; i += 7) {
         for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i | j).toString();
-            assert.eql(bignum(i).or(j).toString(), ks);
-            assert.eql(bignum(i).or(js).toString(), ks);
-            assert.eql(bignum(i).or(bignum(j)).toString(), ks);
-            assert.eql(bignum.or(i, j).toString(), ks);
+            t.deepEqual(bignum(i).or(j).toString(), ks);
+            t.deepEqual(bignum(i).or(js).toString(), ks);
+            t.deepEqual(bignum(i).or(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.or(i, j).toString(), ks);
 
-            assert.eql(bignum(-1 * i).or(j).toString(), (-1 * i) | j);
-            assert.eql(bignum(i).or(-1 * j).toString(), i | (-1 * j));
-            assert.eql(bignum(-1 * i).or(-1 * j).toString(), (-1 * i) | (-1 * j));
+            t.deepEqual(bignum(-1 * i).or(j).toString(), ((-1 * i) | j).toString());
+            t.deepEqual(bignum(i).or(-1 * j).toString(), (i | (-1 * j)).toString());
+            t.deepEqual(bignum(-1 * i).or(-1 * j).toString(), ((-1 * i) | (-1 * j)).toString());
         }
     }
-    assert.eql(bignum.or(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
-    assert.eql(bignum.or(bignum('111110', 16), bignum('111111', 16)).toString(16), '111111');
-    assert.eql(bignum.or(bignum('111112', 16), bignum('111111', 16)).toString(16), '111113');
-    assert.eql(bignum.or(bignum('111121', 16), bignum('111111', 16)).toString(16), '111131');
+    t.deepEqual(bignum.or(bignum('111111', 16), bignum('111111', 16)).toString(16), '111111');
+    t.deepEqual(bignum.or(bignum('111110', 16), bignum('111111', 16)).toString(16), '111111');
+    t.deepEqual(bignum.or(bignum('111112', 16), bignum('111111', 16)).toString(16), '111113');
+    t.deepEqual(bignum.or(bignum('111121', 16), bignum('111111', 16)).toString(16), '111131');
 
-    assert.eql(bignum.or(bignum('-111111', 16), bignum('111111', 16)).toString(16), '-01');
-    assert.eql(bignum.or(bignum('111111', 16), bignum('-111111', 16)).toString(16), '-01');
-    assert.eql(bignum.or(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
-};
+    t.deepEqual(bignum.or(bignum('-111111', 16), bignum('111111', 16)).toString(16), '-01');
+    t.deepEqual(bignum.or(bignum('111111', 16), bignum('-111111', 16)).toString(16), '-01');
+    t.deepEqual(bignum.or(bignum('-111111', 16), bignum('-111111', 16)).toString(16), '-111111');
 
-exports.xor = function () {
+    t.end();
+})
+
+test('xor', function (t) {
     for (var i = 0; i < 256; i += 7) {
         for (var j = 0; j < 256; j += 7) {
             var is = i.toString();
             var js = j.toString();
             var ks = (i ^ j).toString();
-            assert.eql(bignum(i).xor(j).toString(), ks);
-            assert.eql(bignum(i).xor(js).toString(), ks);
-            assert.eql(bignum(i).xor(bignum(j)).toString(), ks);
-            assert.eql(bignum.xor(i, j).toString(), ks);
+            t.deepEqual(bignum(i).xor(j).toString(), ks);
+            t.deepEqual(bignum(i).xor(js).toString(), ks);
+            t.deepEqual(bignum(i).xor(bignum(j)).toString(), ks);
+            t.deepEqual(bignum.xor(i, j).toString(), ks);
 
-            assert.eql(bignum(-1 * i).xor(j).toString(), (-1 * i) ^ j);
-            assert.eql(bignum(i).xor(-1 * j).toString(), i ^ (-1 * j));
-            assert.eql(bignum(-1 * i).xor(-1 * j).toString(), (-1 * i) ^ (-1 * j));
+            t.deepEqual(bignum(-1 * i).xor(j).toString(), ((-1 * i) ^ j).toString());
+            t.deepEqual(bignum(i).xor(-1 * j).toString(), (i ^ (-1 * j)).toString());
+            t.deepEqual(bignum(-1 * i).xor(-1 * j).toString(), ((-1 * i) ^ (-1 * j)).toString());
         }
     }
-    assert.eql(bignum.xor(bignum('111111', 16), bignum('111111', 16)).toString(), 0);
-    assert.eql(bignum.xor(bignum('111110', 16), bignum('111111', 16)).toString(), 1);
-    assert.eql(bignum.xor(bignum('111112', 16), bignum('111111', 16)).toString(), 3);
-    assert.eql(bignum.xor(bignum('111121', 16), bignum('111111', 16)).toString(), 0x30);
+    t.deepEqual(bignum.xor(bignum('111111', 16), bignum('111111', 16)).toString(), 0);
+    t.deepEqual(bignum.xor(bignum('111110', 16), bignum('111111', 16)).toString(), 1);
+    t.deepEqual(bignum.xor(bignum('111112', 16), bignum('111111', 16)).toString(), 3);
+    t.deepEqual(bignum.xor(bignum('111121', 16), bignum('111111', 16)).toString(), 0x30);
 
-    assert.eql(bignum.xor(bignum('-111111', 16), bignum('111111', 16)).toString(), -2);
-    assert.eql(bignum.xor(bignum('111111', 16), bignum('-111111', 16)).toString(), -2);
-    assert.eql(bignum.xor(bignum('-111111', 16), bignum('-111111', 16)).toString(), 0);
-};
+    t.deepEqual(bignum.xor(bignum('-111111', 16), bignum('111111', 16)).toString(), -2);
+    t.deepEqual(bignum.xor(bignum('111111', 16), bignum('-111111', 16)).toString(), -2);
+    t.deepEqual(bignum.xor(bignum('-111111', 16), bignum('-111111', 16)).toString(), 0);
 
-exports.rand = function () {
+    t.end();
+})
+
+test('rand', function (t) {
     for (var i = 1; i < 1000; i++) {
         var x = bignum(i).rand().toNumber();
-        assert.ok(0 <= x  && x < i);
+        t.ok(0 <= x  && x < i);
         
         var y = bignum(i).rand(i + 10).toNumber();
-        assert.ok(i <= y && y < i + 10);
+        t.ok(i <= y && y < i + 10);
         
         var z = bignum.rand(i, i + 10).toNumber();
-        assert.ok(i <= z && z < i + 10);
+        t.ok(i <= z && z < i + 10);
     }
-};
 
-exports.primes = function () {
+    t.end();
+})
+
+test('primes', function (t) {
     var ps = { 2 : true, 3 : true, 5 : true, 7 : true };
     for (var i = 0; i <= 10; i++) {
-        assert.eql(bignum(i).probPrime(), ps[i] ? true : false);
+        t.deepEqual(bignum(i).probPrime(), ps[i] ? true : false);
     }
     
     var ns = {
@@ -385,7 +415,7 @@ exports.primes = function () {
     };
     
     Object.keys(ns).forEach(function (n) {
-        assert.eql(
+        t.deepEqual(
             bignum(n).nextPrime().toString(),
             ns[n].toString()
         );
@@ -416,12 +446,14 @@ exports.primes = function () {
     [ uniques, wagstaff, big ].forEach(function (xs) {
         xs.forEach(function (x) {
             var p = bignum(x).probPrime();
-            assert.ok(p === true || p === 'maybe');
+            t.ok(p === true || p === 'maybe');
         });
     });
-};
 
-exports.isbitset = function () {
+    t.end();
+})
+
+test('isbitset', function (t) {
     function mkbin(bn) {
         var bin = '';
 
@@ -432,109 +464,114 @@ exports.isbitset = function () {
         return bin;
     }
 
-    assert.eql(mkbin(bignum( 127)), '1111111');
-    assert.eql(mkbin(bignum(-127)), '1111111');
+    t.deepEqual(mkbin(bignum( 127)), '1111111');
+    t.deepEqual(mkbin(bignum(-127)), '1111111');
 
-    assert.eql(mkbin(bignum( 128)), '00000001');
-    assert.eql(mkbin(bignum(-128)), '00000001');
+    t.deepEqual(mkbin(bignum( 128)), '00000001');
+    t.deepEqual(mkbin(bignum(-128)), '00000001');
 
-    assert.eql(mkbin(bignum( 129)), '10000001');
-    assert.eql(mkbin(bignum(-129)), '10000001');
-};
+    t.deepEqual(mkbin(bignum( 129)), '10000001');
+    t.deepEqual(mkbin(bignum(-129)), '10000001');
 
-exports.invertm = function () {
+    t.end();
+})
+
+test('invertm', function (t) {
     // numbers from http://www.itl.nist.gov/fipspubs/fip186.htm appendix 5
     var q = bignum('b20db0b101df0c6624fc1392ba55f77d577481e5', 16);
     var k = bignum('79577ddcaafddc038b865b19f8eb1ada8a2838c6', 16);
     var kinv = k.invertm(q);
-    assert.eql(kinv.toString(16), '2784e3d672d972a74e22c67f4f4f726ecc751efa');
-};
+    t.deepEqual(kinv.toString(16), '2784e3d672d972a74e22c67f4f4f726ecc751efa');
 
-exports.shift = function () {
-    assert.eql(bignum(37).shiftLeft(2).toString(), (37 << 2).toString()); // 148
-    assert.eql(bignum(37).shiftRight(2).toString(), (37 >> 2).toString()); // 9
+    t.end();
+})
+
+test('shift', function (t) {
+    t.deepEqual(bignum(37).shiftLeft(2).toString(), (37 << 2).toString()); // 148
+    t.deepEqual(bignum(37).shiftRight(2).toString(), (37 >> 2).toString()); // 9
     
-    assert.equal(
+    t.equal(
         bignum(2).pow(Math.pow(2,10)).shiftRight(4).toString(),
         bignum(2).pow(Math.pow(2,10)).div(16).toString()
     );
-};
 
-exports.mod = function () {
-    assert.eql(bignum(55555).mod(2).toString(), '1');
-    assert.eql(
+    t.end();
+})
+
+test('mod', function (t) {
+    t.deepEqual(bignum(55555).mod(2).toString(), '1');
+    t.deepEqual(
         bignum('1234567').mod(
             bignum('4321')
         ).toNumber(), 
         1234567 % 4321
     );
-};
 
-exports.endian = function () {
+    t.end();
+})
+
+test('endian', function (t) {
     var a = bignum(0x0102030405);
-    assert.eql(a.toBuffer({ endian: 'big', size: 2 }).toString('hex'), '000102030405');
-    assert.eql(a.toBuffer({ endian: 'little', size: 2 }).toString('hex'), '010003020504');
+    t.deepEqual(a.toBuffer({ endian: 'big', size: 2 }).toString('hex'), '000102030405');
+    t.deepEqual(a.toBuffer({ endian: 'little', size: 2 }).toString('hex'), '010003020504');
     
     var b = bignum(0x0102030405);
-    assert.eql(a.toBuffer({ endian: 'big', size: 'auto' }).toString('hex'), '0102030405');
-    assert.eql(a.toBuffer({ endian: 'little', size: 'auto' }).toString('hex'), '0504030201');
+    t.deepEqual(a.toBuffer({ endian: 'big', size: 'auto' }).toString('hex'), '0102030405');
+    t.deepEqual(a.toBuffer({ endian: 'little', size: 'auto' }).toString('hex'), '0504030201');
     
     var c = new Buffer("000102030405", 'hex');
-    assert.eql(bignum.fromBuffer(c, { endian: 'big', size: 'auto'}).toString(16), "0102030405");
-    assert.eql(bignum.fromBuffer(c, { endian: 'little', size: 'auto'}).toString(16), "050403020100");
-};
+    t.deepEqual(bignum.fromBuffer(c, { endian: 'big', size: 'auto'}).toString(16), "0102030405");
+    t.deepEqual(bignum.fromBuffer(c, { endian: 'little', size: 'auto'}).toString(16), "050403020100");
 
-exports.bitlength = function () {
+    t.end();
+})
+
+test('bitlength', function (t) {
     var bl = bignum(
     '433593290010590489671135819286259593426549306666324008679782084292'
       + '2446494189019075159822930571858728009485237489829138626896756141'
       + '873895833763224917704497568647701157104426'
     ).bitLength();
     
-    assert.equal(bl > 0, true);
-};
+    t.equal(bl > 0, true);
 
-exports.gcd = function () {
+    t.end();
+})
+
+test('gcd', function (t) {
     var b1 = bignum('234897235923342343242');
     var b2 = bignum('234790237101762305340234');
     var expected = bignum('6');
-    assert.equal(b1.gcd(b2).toString(), expected.toString());
-};
+    t.equal(b1.gcd(b2).toString(), expected.toString());
 
-exports.jacobi = function () {
+    t.end();
+})
+
+test('jacobi', function (t) {
     // test case from p. 134 of D. R. Stinson
     var b1 = bignum('7411');
     var b2 = bignum('9283');
-    assert.equal(b1.jacobi(b2), -1);
+    t.equal(b1.jacobi(b2), -1);
 
     // test case from p. 132 of D. R. Stinson
     b1 = bignum('6278');
     b2 = bignum('9975');
-    assert.equal(b1.jacobi(b2), -1);
+    t.equal(b1.jacobi(b2), -1);
 
     // test case from p. 74 of Men. Oorsh. Vans.
     b1 = bignum('158');
     b2 = bignum('235');
-    assert.equal(b1.jacobi(b2), -1);
+    t.equal(b1.jacobi(b2), -1);
 
     // test case from p. 216 of Kumanduri Romero
     b1 = bignum('4');
     b2 = bignum('7');
-    assert.equal(b1.jacobi(b2), 1);
+    t.equal(b1.jacobi(b2), 1);
 
     // test case from p. 363 of K. R. Rosen
     b1 = bignum('68');
     b2 = bignum('111');
-    assert.equal(b1.jacobi(b2), 1);
-};
+    t.equal(b1.jacobi(b2), 1);
 
-if (process.argv[1] === __filename) {
-    assert.eql = assert.deepEqual;
-    Object.keys(exports).forEach(function (ex) {
-        exports[ex]();
-    });
-
-    if ("function" === typeof gc) {
-        gc();
-    }
-}
+    t.end();
+})
