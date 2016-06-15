@@ -25,17 +25,13 @@
     "nan": "^2.3.4"
   },
   "devDependencies": {
-    "expresso": ">=0.6.0",
-    "binary": ">=0.1.7",
-    "put": ">=0.0.5"
+    "put": "~0.0.5",
+    "tap": "~5.7.2"
   },
   "license": "MIT",
-  "engine": {
-    "node": ">=0.8.0"
-  },
   "scripts": {
     "install": "node-gyp configure build",
-    "test": "expresso"
+    "test": "tap test/*.js"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"
