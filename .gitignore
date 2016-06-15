@@ -1,10 +1,11 @@
 # Files
 .lock-wscript
+.nyc_output
 
 # Filetypes
 .*.swp
 
 # Paths
 /build
-
-node_modules
+/node_modules
+/coverage
