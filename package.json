@@ -22,11 +22,13 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
+    "bindings": "~1.2.1",
     "nan": "^2.3.4",
     "tap": "~5.7.2"
   },
   "devDependencies": {
-    "put": ">=0.0.5"
+    "put": ">=0.0.5",
+    "standard": "~7.1.2"
   },
   "license": "MIT",
   "engine": {
@@ -34,7 +36,7 @@
   },
   "scripts": {
     "install": "node-gyp configure build",
-    "test": "tap test/*.js"
+    "test": "standard && tap test/*.js"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"
