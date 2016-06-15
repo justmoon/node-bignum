@@ -1,6 +1,8 @@
 bignum
 ======
 
+[![Build Status](https://travis-ci.org/justmoon/node-bignum.svg?branch=master)](https://travis-ci.org/justmoon/node-bignum)
+
 Arbitrary precision integral arithmetic for Node.js using
 OpenSSL.
 
