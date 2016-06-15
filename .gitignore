@@ -10,3 +10,4 @@
 /coverage
 /binding
 /.nyc_output
+/docker
