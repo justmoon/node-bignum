@@ -36,7 +36,7 @@
   },
   "scripts": {
     "install": "node-gyp configure build",
-    "test": "standard && tap test/*.js"
+    "test": "standard && tap --cov test/*.js"
   },
   "contributors": [
     "James Halliday <mail@substack.net>"

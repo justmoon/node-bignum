@@ -1,5 +1,4 @@
 var exec = require('child_process').exec
-var path = require('path')
 var test = require('tap').test
 
 test('rand', function (t) {
@@ -7,12 +6,10 @@ test('rand', function (t) {
     t.fail('never executed')
   }, 5000)
 
-  var cmd = 'node -e \'console.log(require(' +
-    JSON.stringify(path.join(__dirname, '..')) +
-    ').rand(1000).toString())\''
+  var cmd = 'node -e \'console.log(require("../").rand(1000).toString())\''
 
-  exec(cmd, function (err1, r1) {
-    exec(cmd, function (err2, r2) {
+  exec(cmd, { cwd: __dirname }, function (err1, r1) {
+    exec(cmd, { cwd: __dirname }, function (err2, r2) {
       clearTimeout(to)
 
       t.ok(!err1)
