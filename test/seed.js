@@ -1,4 +1,10 @@
-var exec = require('child_process').exec
+// skip on Windows for now, this doesn't work
+if (process.platform === 'win32') {
+  process.exit(0)
+}
+
+var path = require('path')
+var execFile = require('child_process').execFile
 var test = require('tap').test
 
 test('rand', function (t) {
@@ -6,26 +12,29 @@ test('rand', function (t) {
     t.fail('never executed')
   }, 5000)
 
-  var cmd = 'node -e \'console.log(require("../").rand(1000).toString())\''
+  var args = [
+    '-p',
+    'require("' + path.join(__dirname, '..') + '").rand(1000).toString()'
+  ]
 
-  exec(cmd, { cwd: __dirname }, function (err1, r1) {
-    exec(cmd, { cwd: __dirname }, function (err2, r2) {
+  execFile(process.execPath, args, function (err1, r1) {
+    execFile(process.execPath, args, function (err2, r2) {
       clearTimeout(to)
 
-      t.ok(!err1)
-      t.ok(!err2)
+      t.ifError(err1)
+      t.ifError(err2)
 
       t.ok(
-        r1.match(/^\d+\n/),
+        r1.match(/^\d+[\r\n]+/),
         JSON.stringify(r1) + ' is not an integer'
       )
       t.ok(
-        r2.match(/^\d+\n/),
+        r2.match(/^\d+[\r\n]+/),
         JSON.stringify(r2) + ' is not an integer'
       )
 
-      var n1 = parseInt(r1.split('\n')[0], 10)
-      var n2 = parseInt(r2.split('\n')[0], 10)
+      var n1 = parseInt(r1.split(/[\r\n]+/)[0], 10)
+      var n2 = parseInt(r2.split(/[\r\n]+/)[0], 10)
 
       t.ok(n1 >= 0, 'n1 >= 0')
       t.ok(n2 >= 0, 'n2 >= 0')

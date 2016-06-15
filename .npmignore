@@ -1,5 +1,6 @@
 .lock-wscript
 .travis.yml
+appveyor.yml
 .dntrc
 .npmignore
 .*.swp
@@ -10,3 +11,5 @@
 /.nyc_output
 /test
 /examples
+/docker
+pre-gyp-publish.sh

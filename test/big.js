@@ -1,7 +1,9 @@
 var BigNum = require('../')
 var test = require('tap').test
 
-test('create', function (t) {
+test.setTimeout(120000)
+
+test('create', { timeout: 120000 }, function (t) {
   t.deepEqual(BigNum(1337).toString(), '1337')
   t.deepEqual(BigNum('1337').toString(), '1337')
   t.deepEqual(new BigNum('100').toString(), '100')
@@ -30,7 +32,7 @@ test('create', function (t) {
   t.end()
 })
 
-test('add', function (t) {
+test('add', { timeout: 120000 }, function (t) {
   for (var i = -10; i < 10; i++) {
     for (var j = -10; j < 10; j++) {
       var js = j.toString()
@@ -60,7 +62,7 @@ test('add', function (t) {
   t.end()
 })
 
-test('sub', function (t) {
+test('sub', { timeout: 120000 }, function (t) {
   for (var i = -10; i < 10; i++) {
     for (var j = -10; j < 10; j++) {
       var js = j.toString()
@@ -90,7 +92,7 @@ test('sub', function (t) {
   t.end()
 })
 
-test('mul', function (t) {
+test('mul', { timeout: 120000 }, function (t) {
   for (var i = -10; i < 10; i++) {
     for (var j = -10; j < 10; j++) {
       var js = j.toString()
@@ -128,7 +130,7 @@ test('mul', function (t) {
   t.end()
 })
 
-test('div', function (t) {
+test('div', { timeout: 120000 }, function (t) {
   for (var i = -10; i < 10; i++) {
     for (var j = -10; j < 10; j++) {
       var js = j.toString()
@@ -159,7 +161,7 @@ test('div', function (t) {
   t.end()
 })
 
-test('abs', function (t) {
+test('abs', { timeout: 120000 }, function (t) {
   t.deepEqual(
     BigNum(
       '433593290010590489671135819286259593426549306666324008679782084292' +
@@ -185,7 +187,7 @@ test('abs', function (t) {
   t.end()
 })
 
-test('neg', function (t) {
+test('neg', { timeout: 120000 }, function (t) {
   t.deepEqual(
     BigNum(
       '433593290010590489671135819286259593426549306666324008679782084292' +
@@ -211,7 +213,7 @@ test('neg', function (t) {
   t.end()
 })
 
-test('mod', function (t) {
+test('mod', { timeout: 120000 }, function (t) {
   for (var i = 0; i < 10; i++) {
     for (var j = 0; j < 10; j++) {
       var js = j.toString()
@@ -235,7 +237,7 @@ test('mod', function (t) {
   t.end()
 })
 
-test('cmp', function (t) {
+test('cmp', { timeout: 120000 }, function (t) {
   for (var i = -10; i <= 10; i++) {
     var bi = BigNum(i)
 
@@ -254,7 +256,7 @@ test('cmp', function (t) {
   t.end()
 })
 
-test('powm', function (t) {
+test('powm', { timeout: 120000 }, function (t) {
   var twos = [ 2, '2', BigNum(2), BigNum('2') ]
   var tens = [ 100000, '100000', BigNum(100000), BigNum(100000) ]
   twos.forEach(function (two) {
@@ -276,7 +278,7 @@ test('powm', function (t) {
   t.end()
 })
 
-test('pow', function (t) {
+test('pow', { timeout: 120000 }, function (t) {
   [ 2, '2', BigNum(2), BigNum('2') ].forEach(function (two) {
     t.deepEqual(
       BigNum('111111111').pow(two).toString(),
@@ -292,7 +294,7 @@ test('pow', function (t) {
   t.end()
 })
 
-test('and', function (t) {
+test('and', { timeout: 120000 }, function (t) {
   for (var i = 0; i < 256; i += 7) {
     for (var j = 0; j < 256; j += 7) {
       var js = j.toString()
@@ -320,7 +322,7 @@ test('and', function (t) {
   t.end()
 })
 
-test('or', function (t) {
+test('or', { timeout: 120000 }, function (t) {
   for (var i = 0; i < 256; i += 7) {
     for (var j = 0; j < 256; j += 7) {
       var js = j.toString()
@@ -347,7 +349,7 @@ test('or', function (t) {
   t.end()
 })
 
-test('xor', function (t) {
+test('xor', { timeout: 120000 }, function (t) {
   for (var i = 0; i < 256; i += 7) {
     for (var j = 0; j < 256; j += 7) {
       var js = j.toString()
@@ -374,7 +376,7 @@ test('xor', function (t) {
   t.end()
 })
 
-test('rand', function (t) {
+test('rand', { timeout: 120000 }, function (t) {
   for (var i = 1; i < 1000; i++) {
     var x = BigNum(i).rand().toNumber()
     t.ok(x >= 0 && x < i)
@@ -389,7 +391,7 @@ test('rand', function (t) {
   t.end()
 })
 
-test('primes', function (t) {
+test('primes', { timeout: 120000 }, function (t) {
   var ps = { 2: true, 3: true, 5: true, 7: true }
   for (var i = 0; i <= 10; i++) {
     t.deepEqual(BigNum(i).probPrime(), Boolean(ps[i]))
@@ -445,7 +447,7 @@ test('primes', function (t) {
   t.end()
 })
 
-test('isbitset', function (t) {
+test('isbitset', { timeout: 120000 }, function (t) {
   function mkbin (bn) {
     var bin = ''
 
@@ -468,7 +470,7 @@ test('isbitset', function (t) {
   t.end()
 })
 
-test('invertm', function (t) {
+test('invertm', { timeout: 120000 }, function (t) {
   // numbers from http://www.itl.nist.gov/fipspubs/fip186.htm appendix 5
   var q = BigNum('b20db0b101df0c6624fc1392ba55f77d577481e5', 16)
   var k = BigNum('79577ddcaafddc038b865b19f8eb1ada8a2838c6', 16)
@@ -478,7 +480,7 @@ test('invertm', function (t) {
   t.end()
 })
 
-test('shift', function (t) {
+test('shift', { timeout: 120000 }, function (t) {
   t.deepEqual(BigNum(37).shiftLeft(2).toString(), (37 << 2).toString()) // 148
   t.deepEqual(BigNum(37).shiftRight(2).toString(), (37 >> 2).toString()) // 9
 
@@ -490,7 +492,7 @@ test('shift', function (t) {
   t.end()
 })
 
-test('mod', function (t) {
+test('mod', { timeout: 120000 }, function (t) {
   t.deepEqual(BigNum(55555).mod(2).toString(), '1')
   t.deepEqual(
     BigNum('1234567').mod(
@@ -502,7 +504,7 @@ test('mod', function (t) {
   t.end()
 })
 
-test('endian', function (t) {
+test('endian', { timeout: 120000 }, function (t) {
   var a = BigNum(0x0102030405)
   t.deepEqual(a.toBuffer({ endian: 'big', size: 2 }).toString('hex'), '000102030405')
   t.deepEqual(a.toBuffer({ endian: 'little', size: 2 }).toString('hex'), '010003020504')
@@ -518,7 +520,7 @@ test('endian', function (t) {
   t.end()
 })
 
-test('bitlength', function (t) {
+test('bitlength', { timeout: 120000 }, function (t) {
   var bl = BigNum(
   '433593290010590489671135819286259593426549306666324008679782084292' +
     '2446494189019075159822930571858728009485237489829138626896756141' +
@@ -530,7 +532,7 @@ test('bitlength', function (t) {
   t.end()
 })
 
-test('gcd', function (t) {
+test('gcd', { timeout: 120000 }, function (t) {
   var b1 = BigNum('234897235923342343242')
   var b2 = BigNum('234790237101762305340234')
   var expected = BigNum('6')
@@ -539,7 +541,7 @@ test('gcd', function (t) {
   t.end()
 })
 
-test('jacobi', function (t) {
+test('jacobi', { timeout: 120000 }, function (t) {
   // test case from p. 134 of D. R. Stinson
   var b1 = BigNum('7411')
   var b2 = BigNum('9283')
