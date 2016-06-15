@@ -23,19 +23,29 @@
   },
   "dependencies": {
     "bindings": "~1.2.1",
-    "nan": "^2.3.4"
+    "nan": "^2.3.4",
+    "node-pre-gyp": "~0.6.28"
   },
   "devDependencies": {
+    "aws-sdk": "~2.4.0",
     "put": "~0.0.5",
     "standard": "~7.1.2",
     "tap": "~5.7.2"
   },
-  "license": "MIT",
   "scripts": {
-    "install": "node-gyp configure build",
+    "preinstall": "npm install node-pre-gyp",
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "standard && tap --cov test/*.js"
   },
+  "binary": {
+    "host": "https://rvagg-node.s3-us-west-2.amazonaws.com",
+    "module_name": "bignum",
+    "module_path": "./binding",
+    "remote_path": "./{name}/v{version}"
+  },
+  "license": "MIT",
   "contributors": [
-    "James Halliday <mail@substack.net>"
+    "James Halliday <mail@substack.net>",
+    "Rod Vagg <rod@vagg.org>"
   ]
 }

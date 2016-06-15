@@ -1,1 +1,12 @@
-build
+.lock-wscript
+.travis.yml
+.dntrc
+.npmignore
+.*.swp
+/build
+/node_modules
+/coverage
+/binding
+/.nyc_output
+/test
+/examples

@@ -1,4 +1,7 @@
-var bin = require('bindings')('bignum.node')
+var binary = require('node-pre-gyp')
+var path = require('path')
+var binPath = binary.find(path.resolve(path.join(__dirname, 'package.json')))
+var bin = require(binPath)
 var BigNum = bin.BigNum
 
 module.exports = BigNum

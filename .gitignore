@@ -1,6 +1,5 @@
 # Files
 .lock-wscript
-.nyc_output
 
 # Filetypes
 .*.swp
@@ -9,3 +8,5 @@
 /build
 /node_modules
 /coverage
+/binding
+/.nyc_output
