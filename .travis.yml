@@ -1,18 +1,22 @@
+os:
+  - linux
+  - osx
+sudo: false
 language: node_js
-
-node_js:
-  - "0.10"
-  - "0.12"
-  - "4"
-  - "6"
-
-env:
-  global:
-    - CXX=g++-4.8
-
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.8
+env:
+  matrix:
+  - TRAVIS_NODE_VERSION="0.10"
+  - TRAVIS_NODE_VERSION="0.12"
+  - TRAVIS_NODE_VERSION="4"
+  - TRAVIS_NODE_VERSION="6"
+notifications:
+  email:
+    - rod@vagg.org
+install: npm install
+script: npm test
