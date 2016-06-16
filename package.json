@@ -1,6 +1,6 @@
 {
   "name": "bignum",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "Arbitrary-precision integer arithmetic using OpenSSL",
   "main": "./index.js",
   "repository": {
