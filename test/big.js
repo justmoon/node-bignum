@@ -1,8 +1,6 @@
 var BigNum = require('../')
 var test = require('tap').test
 
-test.setTimeout(120000)
-
 test('create', { timeout: 120000 }, function (t) {
   t.deepEqual(BigNum(1337).toString(), '1337')
   t.deepEqual(BigNum('1337').toString(), '1337')
