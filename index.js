@@ -72,6 +72,10 @@ BigNum.prototype.toString = function (base) {
   return value
 }
 
+BigNum.prototype.toJSON = function () {
+  return this.toString()
+}
+
 BigNum.prototype.toNumber = function () {
   return parseInt(this.toString(), 10)
 }
