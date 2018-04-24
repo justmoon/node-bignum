@@ -22,8 +22,9 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.3.4",
-    "node-pre-gyp": "~0.6.28"
+    "nan": "^2.10.0",
+    "node-pre-gyp": "~0.6.28",
+    "put": "0.0.6"
   },
   "devDependencies": {
     "aws-sdk": "~2.4.0",
