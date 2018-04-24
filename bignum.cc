@@ -412,7 +412,7 @@ NAN_METHOD(BigNum::New)
     }
 
     String::Utf8Value str(obj->ToObject()->Get(Nan::New("num").ToLocalChecked())->ToString());
-    base =   Nan::To<v8::Number>(obj->ToObject()->Get(Nan::New("base").ToLocalChecked())).ToLocalChecked()->Value();
+    base = Nan::To<v8::Number>(obj->ToObject()->Get(Nan::New("base").ToLocalChecked())).ToLocalChecked()->Value();
 
     bignum = new BigNum(str, base);
   }
