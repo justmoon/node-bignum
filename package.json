@@ -33,7 +33,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "test \"$(node --version)\" = \"v0.10.48\" -o \"$(node --version)\" = 'v0.12.18' || standard && tap --timeout 120 test/*.js"
+    "test": "standard && tap --timeout 120 test/*.js"
   },
   "binary": {
     "host": "https://rvagg-node.s3-us-west-2.amazonaws.com",

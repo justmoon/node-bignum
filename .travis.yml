@@ -2,11 +2,9 @@ os:
   - linux
   - osx
 node_js:
-  - 0.10
-  - 0.12
-  - 4
   - 6
   - 8
+  - 10
 sudo: false
 language: node_js
 addons:
