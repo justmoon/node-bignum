@@ -22,14 +22,14 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.3.4",
+    "nan": "^2.10.0",
     "node-pre-gyp": "~0.6.28"
   },
   "devDependencies": {
     "aws-sdk": "~2.4.0",
     "put": "~0.0.5",
     "standard": "~7.1.2",
-    "tap": "~5.7.2"
+    "tap": "~6.3.2"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",

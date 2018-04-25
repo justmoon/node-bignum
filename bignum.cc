@@ -41,7 +41,7 @@ using namespace std;
     Nan::ThrowTypeError("Argument " #I " must be a uint32");    \
     return;                                     \
   }                                                           \
-  uint32_t VAR = info[I]->ToUint32()->Value();
+  uint32_t VAR = Nan::To<v8::Uint32>(info[I]).ToLocalChecked()->Value();
 
 #define REQ_INT64_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsNumber()) {         \
@@ -66,8 +66,8 @@ using namespace std;
 
 #define WRAP_RESULT(RES, VAR)                                           \
   Local<Value> arg[1] = { Nan::New<External>(static_cast<BigNum*>(RES)) };  \
-  Local<Object> VAR = Nan::New<FunctionTemplate>(constructor_template)->      \
-    GetFunction()->NewInstance(1, arg);
+  Local<Object> VAR = Nan::NewInstance(Nan::New<FunctionTemplate>(constructor_template)->      \
+    GetFunction(), 1, arg).ToLocalChecked();
 
 class AutoBN_CTX
 {
@@ -381,10 +381,12 @@ NAN_METHOD(BigNum::New)
     for (int i = 0; i < len; i++) {
       newArgs[i] = info[i];
     }
-    Local<Value> newInst = Nan::New<FunctionTemplate>(constructor_template)->
-        GetFunction()->NewInstance(len, newArgs);
+    Nan::MaybeLocal<v8::Object> newInst = Nan::NewInstance(Nan::New<FunctionTemplate>(constructor_template)->
+        GetFunction(), len, newArgs);
     delete[] newArgs;
-    info.GetReturnValue().Set(newInst);
+    if (!newInst.IsEmpty()) {
+      info.GetReturnValue().Set(newInst.ToLocalChecked());
+    }
     return;
   }
 
@@ -410,7 +412,7 @@ NAN_METHOD(BigNum::New)
     }
 
     String::Utf8Value str(obj->ToObject()->Get(Nan::New("num").ToLocalChecked())->ToString());
-    base = obj->ToObject()->Get(Nan::New("base").ToLocalChecked())->ToNumber()->Value();
+    base = Nan::To<v8::Number>(obj->ToObject()->Get(Nan::New("base").ToLocalChecked())).ToLocalChecked()->Value();
 
     bignum = new BigNum(str, base);
   }
@@ -1082,7 +1084,7 @@ NAN_METHOD(BigNum::Bsetcompact)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  unsigned int nCompact = info[0]->ToUint32()->Value();
+  unsigned int nCompact = Nan::To<v8::Uint32>(info[0]).ToLocalChecked()->Value();
   unsigned int nSize = nCompact >> 24;
   bool fNegative     =(nCompact & 0x00800000) != 0;
   unsigned int nWord = nCompact & 0x007fffff;
