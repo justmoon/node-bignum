@@ -41,7 +41,7 @@ using namespace std;
     Nan::ThrowTypeError("Argument " #I " must be a uint32");    \
     return;                                     \
   }                                                           \
-  uint32_t VAR = info[I]->ToUint32()->Value();
+  uint32_t VAR = Nan::To<int32_t>(info[I]).FromJust();
 
 #define REQ_INT64_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsNumber()) {         \
@@ -66,8 +66,8 @@ using namespace std;
 
 #define WRAP_RESULT(RES, VAR)                                           \
   Local<Value> arg[1] = { Nan::New<External>(static_cast<BigNum*>(RES)) };  \
-  Local<Object> VAR = Nan::New<FunctionTemplate>(constructor_template)->      \
-    GetFunction()->NewInstance(1, arg);
+  Local<Object> VAR = Nan::NewInstance(Nan::New<FunctionTemplate>(constructor_template)->GetFunction(),      \
+    1, arg).ToLocalChecked();
 
 class AutoBN_CTX
 {
@@ -140,9 +140,9 @@ int BN_jacobi_priv(const BIGNUM *A,const BIGNUM *N,int *jacobi,
   BN_copy(a1,A);
   BN_copy(n1,N);
 startjacobistep1:
-  if BN_is_zero(a1) /* step 1 */
+  if (BN_is_zero(a1)) /* step 1 */
     goto endBN_jacobi;  /* *jacobi = 1; */
-  if BN_is_one(a1) /* step 2 */
+  if (BN_is_one(a1)) /* step 2 */
     goto endBN_jacobi;  /* *jacobi = 1; */
   for (e=0;;e++) /*  step 3 */
     if (BN_is_odd(a1))
@@ -180,14 +180,14 @@ endBN_jacobi:
 class BigNum : public Nan::ObjectWrap {
 public:
   static void Initialize(Local<Object> target);
-  BIGNUM bignum_;
+  BIGNUM* bignum_;
   static Nan::Persistent<Function> js_conditioner;
   static void SetJSConditioner(Local<Function> constructor);
 
 protected:
   static Nan::Persistent<FunctionTemplate> constructor_template;
 
-  BigNum(const String::Utf8Value& str, uint64_t base);
+  BigNum(const Nan::Utf8String& str, uint64_t base);
   BigNum(uint64_t num);
   BigNum(int64_t num);
   BigNum(BIGNUM *num);
@@ -291,20 +291,19 @@ void BigNum::Initialize(v8::Local<v8::Object> target) {
   target->Set(Nan::New("BigNum").ToLocalChecked(), tmpl->GetFunction());
 }
 
-BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : Nan::ObjectWrap ()
+BigNum::BigNum(const Nan::Utf8String& str, uint64_t base) : Nan::ObjectWrap (),
+    bignum_(BN_new())
 {
-  BN_init(&bignum_);
-  BN_zero(&bignum_);
+  BN_zero(bignum_);
 
-  BIGNUM *res = &bignum_;
+  BIGNUM *res = bignum_;
 
   const char *cstr = *str;
   switch (base) {
   case 2:
-    BN_init(&bignum_);
     for (int i = 0, l = str.length(); i < l; i++) {
       if (cstr[l-i-1] != '0') {
-        BN_set_bit(&bignum_, i);
+        BN_set_bit(bignum_, i);
       }
     }
     break;
@@ -320,57 +319,56 @@ BigNum::BigNum(const v8::String::Utf8Value& str, uint64_t base) : Nan::ObjectWra
   }
 }
 
-BigNum::BigNum(uint64_t num) : Nan::ObjectWrap ()
+BigNum::BigNum(uint64_t num) : Nan::ObjectWrap (),
+    bignum_(BN_new())
 {
-  BN_init(&bignum_);
-
   if (sizeof(BN_ULONG) >= 8 || num <= 0xFFFFFFFFL) {
-    BN_set_word(&bignum_, num);
+    BN_set_word(bignum_, num);
   } else {
-    BN_set_word(&bignum_, num >> 32);
-    BN_lshift(&bignum_, &bignum_, 32);
-    BN_add_word(&bignum_, num & 0xFFFFFFFFL);
+    BN_set_word(bignum_, num >> 32);
+    BN_lshift(bignum_, bignum_, 32);
+    BN_add_word(bignum_, num & 0xFFFFFFFFL);
   }
 }
 
-BigNum::BigNum(int64_t num) : Nan::ObjectWrap ()
+BigNum::BigNum(int64_t num) : Nan::ObjectWrap (),
+    bignum_(BN_new())
 {
   bool neg = (num < 0);
-  BN_init(&bignum_);
 
   if (neg) {
     num = -num;
   }
   if (num < 0) { // num is -2^63
-    BN_one(&bignum_);
-    BN_lshift(&bignum_, &bignum_, 63);
+    BN_one(bignum_);
+    BN_lshift(bignum_, bignum_, 63);
   } else if (sizeof(BN_ULONG) >= 8 || num <= 0xFFFFFFFFL) {
-    BN_set_word(&bignum_, num);
+    BN_set_word(bignum_, num);
   } else {
-    BN_set_word(&bignum_, num >> 32);
-    BN_lshift(&bignum_, &bignum_, 32);
-    BN_add_word(&bignum_, num & 0xFFFFFFFFL);
+    BN_set_word(bignum_, num >> 32);
+    BN_lshift(bignum_, bignum_, 32);
+    BN_add_word(bignum_, num & 0xFFFFFFFFL);
   }
   if (neg) {
-    BN_set_negative(&bignum_, 1);
+    BN_set_negative(bignum_, 1);
   }
 }
 
-BigNum::BigNum(BIGNUM *num) : Nan::ObjectWrap ()
+BigNum::BigNum(BIGNUM *num) : Nan::ObjectWrap (),
+    bignum_(BN_new())
 {
-  BN_init(&bignum_);
-  BN_copy(&bignum_, num);
+  BN_copy(bignum_, num);
 }
 
-BigNum::BigNum() : Nan::ObjectWrap ()
+BigNum::BigNum() : Nan::ObjectWrap (),
+    bignum_(BN_new())
 {
-  BN_init(&bignum_);
-  BN_zero(&bignum_);
+  BN_zero(bignum_);
 }
 
 BigNum::~BigNum()
 {
-  BN_clear_free(&bignum_);
+  BN_clear_free(bignum_);
 }
 
 NAN_METHOD(BigNum::New)
@@ -381,8 +379,16 @@ NAN_METHOD(BigNum::New)
     for (int i = 0; i < len; i++) {
       newArgs[i] = info[i];
     }
-    Local<Value> newInst = Nan::New<FunctionTemplate>(constructor_template)->
-        GetFunction()->NewInstance(len, newArgs);
+
+    Nan::TryCatch tryCatch;
+    Nan::MaybeLocal<Object> newInstMaybeLocal = Nan::NewInstance(
+        Nan::New<FunctionTemplate>(constructor_template)->GetFunction(), len, newArgs);
+    if (tryCatch.HasCaught()) {
+        tryCatch.ReThrow();
+        return;
+    }
+
+    Local<Value> newInst = newInstMaybeLocal.ToLocalChecked();
     delete[] newArgs;
     info.GetReturnValue().Set(newInst);
     return;
@@ -409,8 +415,8 @@ NAN_METHOD(BigNum::New)
       return;
     }
 
-    String::Utf8Value str(obj->ToObject()->Get(Nan::New("num").ToLocalChecked())->ToString());
-    base = obj->ToObject()->Get(Nan::New("base").ToLocalChecked())->ToNumber()->Value();
+    Nan::Utf8String str(obj->ToObject()->Get(Nan::New("num").ToLocalChecked())->ToString());
+    base = Nan::To<int64_t>(obj->ToObject()->Get(Nan::New("base").ToLocalChecked())).FromJust();
 
     bignum = new BigNum(str, base);
   }
@@ -433,10 +439,10 @@ NAN_METHOD(BigNum::ToString)
   char *to = NULL;
   switch (base) {
   case 10:
-    to = BN_bn2dec(&bignum->bignum_);
+    to = BN_bn2dec(bignum->bignum_);
     break;
   case 16:
-    to = BN_bn2hex(&bignum->bignum_);
+    to = BN_bn2hex(bignum->bignum_);
     break;
   default:
     Nan::ThrowError("Invalid base, only 10 and 16 are supported");
@@ -456,7 +462,7 @@ NAN_METHOD(BigNum::Badd)
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
 
-  BN_add(&res->bignum_, &bignum->bignum_, &bn->bignum_);
+  BN_add(res->bignum_, bignum->bignum_, bn->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -469,7 +475,7 @@ NAN_METHOD(BigNum::Bsub)
 
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
-  BN_sub(&res->bignum_, &bignum->bignum_, &bn->bignum_);
+  BN_sub(res->bignum_, bignum->bignum_, bn->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -483,7 +489,7 @@ NAN_METHOD(BigNum::Bmul)
 
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
-  BN_mul(&res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+  BN_mul(res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -497,7 +503,7 @@ NAN_METHOD(BigNum::Bdiv)
 
   BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
-  BN_div(&res->bignum_, NULL, &bignum->bignum_, &bi->bignum_, ctx);
+  BN_div(res->bignum_, NULL, bignum->bignum_, bi->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -509,12 +515,12 @@ NAN_METHOD(BigNum::Uadd)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
   REQ_UINT64_ARG(0, x);
-  BigNum *res = new BigNum(&bignum->bignum_);
+  BigNum *res = new BigNum(bignum->bignum_);
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BN_add_word(&res->bignum_, x);
+    BN_add_word(res->bignum_, x);
   } else {
     BigNum *bn = new BigNum(x);
-    BN_add(&res->bignum_, &bignum->bignum_, &bn->bignum_);
+    BN_add(res->bignum_, bignum->bignum_, bn->bignum_);
   }
 
   WRAP_RESULT(res, result);
@@ -527,12 +533,12 @@ NAN_METHOD(BigNum::Usub)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
   REQ_UINT64_ARG(0, x);
-  BigNum *res = new BigNum(&bignum->bignum_);
+  BigNum *res = new BigNum(bignum->bignum_);
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BN_sub_word(&res->bignum_, x);
+    BN_sub_word(res->bignum_, x);
   } else {
     BigNum *bn = new BigNum(x);
-    BN_sub(&res->bignum_, &bignum->bignum_, &bn->bignum_);
+    BN_sub(res->bignum_, bignum->bignum_, bn->bignum_);
   }
 
   WRAP_RESULT(res, result);
@@ -545,13 +551,13 @@ NAN_METHOD(BigNum::Umul)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
   REQ_UINT64_ARG(0, x);
-  BigNum *res = new BigNum(&bignum->bignum_);
+  BigNum *res = new BigNum(bignum->bignum_);
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BN_mul_word(&res->bignum_, x);
+    BN_mul_word(res->bignum_, x);
   } else {
     AutoBN_CTX ctx;
     BigNum *bn = new BigNum(x);
-    BN_mul(&res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+    BN_mul(res->bignum_, bignum->bignum_, bn->bignum_, ctx);
   }
 
   WRAP_RESULT(res, result);
@@ -564,13 +570,13 @@ NAN_METHOD(BigNum::Udiv)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
   REQ_UINT64_ARG(0, x);
-  BigNum *res = new BigNum(&bignum->bignum_);
+  BigNum *res = new BigNum(bignum->bignum_);
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BN_div_word(&res->bignum_, x);
+    BN_div_word(res->bignum_, x);
   } else {
     AutoBN_CTX ctx;
     BigNum *bn = new BigNum(x);
-    BN_div(&res->bignum_, NULL, &bignum->bignum_, &bn->bignum_, ctx);
+    BN_div(res->bignum_, NULL, bignum->bignum_, bn->bignum_, ctx);
   }
 
   WRAP_RESULT(res, result);
@@ -584,7 +590,7 @@ NAN_METHOD(BigNum::Umul_2exp)
 
   REQ_UINT32_ARG(0, x);
   BigNum *res = new BigNum();
-  BN_lshift(&res->bignum_, &bignum->bignum_, x);
+  BN_lshift(res->bignum_, bignum->bignum_, x);
 
   WRAP_RESULT(res, result);
 
@@ -597,7 +603,7 @@ NAN_METHOD(BigNum::Udiv_2exp)
 
   REQ_UINT32_ARG(0, x);
   BigNum *res = new BigNum();
-  BN_rshift(&res->bignum_, &bignum->bignum_, x);
+  BN_rshift(res->bignum_, bignum->bignum_, x);
 
   WRAP_RESULT(res, result);
 
@@ -608,8 +614,8 @@ NAN_METHOD(BigNum::Babs)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *res = new BigNum(&bignum->bignum_);
-  BN_set_negative(&res->bignum_, 0);
+  BigNum *res = new BigNum(bignum->bignum_);
+  BN_set_negative(res->bignum_, 0);
 
   WRAP_RESULT(res, result);
 
@@ -620,8 +626,8 @@ NAN_METHOD(BigNum::Bneg)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *res = new BigNum(&bignum->bignum_);
-  BN_set_negative(&res->bignum_, !BN_is_negative(&res->bignum_));
+  BigNum *res = new BigNum(bignum->bignum_);
+  BN_set_negative(res->bignum_, !BN_is_negative(res->bignum_));
 
   WRAP_RESULT(res, result);
 
@@ -635,7 +641,7 @@ NAN_METHOD(BigNum::Bmod)
 
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
-  BN_div(NULL, &res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+  BN_div(NULL, res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -649,11 +655,11 @@ NAN_METHOD(BigNum::Umod)
   REQ_UINT64_ARG(0, x);
   BigNum *res = new BigNum();
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BN_set_word(&res->bignum_, BN_mod_word(&bignum->bignum_, x));
+    BN_set_word(res->bignum_, BN_mod_word(bignum->bignum_, x));
   } else {
     AutoBN_CTX ctx;
     BigNum *bn = new BigNum(x);
-    BN_div(NULL, &res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+    BN_div(NULL, res->bignum_, bignum->bignum_, bn->bignum_, ctx);
   }
 
   WRAP_RESULT(res, result);
@@ -669,7 +675,7 @@ NAN_METHOD(BigNum::Bpowm)
   BigNum *bn1 = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *bn2 = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject());
   BigNum *res = new BigNum();
-  BN_mod_exp(&res->bignum_, &bignum->bignum_, &bn1->bignum_, &bn2->bignum_, ctx);
+  BN_mod_exp(res->bignum_, bignum->bignum_, bn1->bignum_, bn2->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -686,7 +692,7 @@ NAN_METHOD(BigNum::Upowm)
   BigNum *exp = new BigNum(x);
 
   BigNum *res = new BigNum();
-  BN_mod_exp(&res->bignum_, &bignum->bignum_, &exp->bignum_, &bn->bignum_, ctx);
+  BN_mod_exp(res->bignum_, bignum->bignum_, exp->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -702,7 +708,7 @@ NAN_METHOD(BigNum::Upow)
   BigNum *exp = new BigNum(x);
 
   BigNum *res = new BigNum();
-  BN_exp(&res->bignum_, &bignum->bignum_, &exp->bignum_, ctx);
+  BN_exp(res->bignum_, bignum->bignum_, exp->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -715,7 +721,7 @@ NAN_METHOD(BigNum::Brand0)
 
   BigNum *res = new BigNum();
 
-  BN_rand_range(&res->bignum_, &bignum->bignum_);
+  BN_rand_range(res->bignum_, bignum->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -729,7 +735,7 @@ NAN_METHOD(BigNum::Uprime0)
 
   BigNum *res = new BigNum();
 
-  BN_generate_prime_ex(&res->bignum_, x, safe, NULL, NULL, NULL);
+  BN_generate_prime_ex(res->bignum_, x, safe, NULL, NULL, NULL);
 
   WRAP_RESULT(res, result);
 
@@ -743,7 +749,7 @@ NAN_METHOD(BigNum::Probprime)
 
   REQ_UINT32_ARG(0, reps);
 
-  info.GetReturnValue().Set(Nan::New<Number>(BN_is_prime_ex(&bignum->bignum_, reps, ctx, NULL)));
+  info.GetReturnValue().Set(Nan::New<Number>(BN_is_prime_ex(bignum->bignum_, reps, ctx, NULL)));
 }
 
 NAN_METHOD(BigNum::IsBitSet)
@@ -752,7 +758,7 @@ NAN_METHOD(BigNum::IsBitSet)
 
   REQ_UINT32_ARG(0, n);
 
-  info.GetReturnValue().Set(Nan::New<Number>(BN_is_bit_set(&bignum->bignum_, n)));
+  info.GetReturnValue().Set(Nan::New<Number>(BN_is_bit_set(bignum->bignum_, n)));
 }
 
 NAN_METHOD(BigNum::Bcompare)
@@ -761,7 +767,7 @@ NAN_METHOD(BigNum::Bcompare)
 
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
 
-  info.GetReturnValue().Set(Nan::New<Number>(BN_cmp(&bignum->bignum_, &bn->bignum_)));
+  info.GetReturnValue().Set(Nan::New<Number>(BN_cmp(bignum->bignum_, bn->bignum_)));
 }
 
 NAN_METHOD(BigNum::Scompare)
@@ -770,7 +776,7 @@ NAN_METHOD(BigNum::Scompare)
 
   REQ_INT64_ARG(0, x);
   BigNum *bn = new BigNum(x);
-  int res = BN_cmp(&bignum->bignum_, &bn->bignum_);
+  int res = BN_cmp(bignum->bignum_, bn->bignum_);
 
   info.GetReturnValue().Set(Nan::New<Number>(res));
 }
@@ -782,14 +788,13 @@ NAN_METHOD(BigNum::Ucompare)
   REQ_UINT64_ARG(0, x);
   int res;
   if (sizeof(BN_ULONG) >= 8 || x <= 0xFFFFFFFFL) {
-    BIGNUM bn;
-    BN_init(&bn);
-    BN_set_word(&bn, x);
-    res = BN_cmp(&bignum->bignum_, &bn);
-    BN_clear_free(&bn);
+    BIGNUM* bn = BN_new();
+    BN_set_word(bn, x);
+    res = BN_cmp(bignum->bignum_, bn);
+    BN_clear_free(bn);
   } else {
     BigNum *bn = new BigNum(x);
-    res = BN_cmp(&bignum->bignum_, &bn->bignum_);
+    res = BN_cmp(bignum->bignum_, bn->bignum_);
   }
 
   info.GetReturnValue().Set(Nan::New<Number>(res));
@@ -892,8 +897,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
 
-  bool bignumNegative = BN_is_negative(&bignum->bignum_);
-  bool bnNegative = BN_is_negative(&bn->bignum_);
+  bool bignumNegative = BN_is_negative(bignum->bignum_);
+  bool bnNegative = BN_is_negative(bn->bignum_);
 
   BigNum *res = new BigNum();
 
@@ -901,8 +906,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   // Portions Copyright (c) Agora S.A.
   // Licensed under the MIT License.
 
-  int payloadSize = BN_bn2mpi(&bignum->bignum_, NULL);
-  int maskSize = BN_bn2mpi(&bn->bignum_, NULL);
+  int payloadSize = BN_bn2mpi(bignum->bignum_, NULL);
+  int maskSize = BN_bn2mpi(bn->bignum_, NULL);
 
   uint32_t size = max(payloadSize, maskSize);
   int offset = abs(payloadSize - maskSize);
@@ -919,8 +924,8 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   uint8_t* payload = (uint8_t*) calloc(size, sizeof(char));
   uint8_t* mask = (uint8_t*) calloc(size, sizeof(char));
 
-  BN_bn2mpi(&bignum->bignum_, payload + payloadOffset);
-  BN_bn2mpi(&bn->bignum_, mask + maskOffset);
+  BN_bn2mpi(bignum->bignum_, payload + payloadOffset);
+  BN_bn2mpi(bn->bignum_, mask + maskOffset);
 
   if (payloadSize < maskSize) {
     shiftSizeAndMSB(payload, mask, payloadOffset);
@@ -989,7 +994,7 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
     twos_complement2mpi(payload + BN_PAYLOAD_OFFSET, size - BN_PAYLOAD_OFFSET);
   }
 
-  BN_mpi2bn(payload, size, &res->bignum_);
+  BN_mpi2bn(payload, size, res->bignum_);
 
   WRAP_RESULT(res, result);
 
@@ -1021,7 +1026,7 @@ NAN_METHOD(BigNum::Binvertm)
 
   BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
-  BN_mod_inverse(&res->bignum_, &bignum->bignum_, &bn->bignum_, ctx);
+  BN_mod_inverse(res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
 
@@ -1042,7 +1047,7 @@ NAN_METHOD(BigNum::BitLength)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  int size = BN_num_bits(&bignum->bignum_);
+  int size = BN_num_bits(bignum->bignum_);
   Local<Value> result = Nan::New<Integer>(size);
 
   info.GetReturnValue().Set(result);
@@ -1056,7 +1061,7 @@ NAN_METHOD(BigNum::Bgcd)
   BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   BigNum *res = new BigNum();
 
-  BN_gcd(&res->bignum_, &bignum->bignum_, &bi->bignum_, ctx);
+  BN_gcd(res->bignum_, bignum->bignum_, bi->bignum_, ctx);
 
   WRAP_RESULT(res, result);
   info.GetReturnValue().Set(result);
@@ -1070,7 +1075,7 @@ NAN_METHOD(BigNum::Bjacobi)
   BigNum *bn_n = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
   int res = 0;
 
-  if (BN_jacobi_priv(&bn_a->bignum_, &bn_n->bignum_, &res, ctx) == -1) {
+  if (BN_jacobi_priv(bn_a->bignum_, bn_n->bignum_, &res, ctx) == -1) {
     Nan::ThrowError("Jacobi symbol calculation failed");
     return;
   }
@@ -1082,21 +1087,21 @@ NAN_METHOD(BigNum::Bsetcompact)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  unsigned int nCompact = info[0]->ToUint32()->Value();
+  unsigned int nCompact = Nan::To<uint32_t>(info[0]).FromJust();
   unsigned int nSize = nCompact >> 24;
   bool fNegative     =(nCompact & 0x00800000) != 0;
   unsigned int nWord = nCompact & 0x007fffff;
   if (nSize <= 3)
   {
       nWord >>= 8*(3-nSize);
-      BN_set_word(&bignum->bignum_, nWord);
+      BN_set_word(bignum->bignum_, nWord);
   }
   else
   {
-      BN_set_word(&bignum->bignum_, nWord);
-      BN_lshift(&bignum->bignum_, &bignum->bignum_, 8*(nSize-3));
+      BN_set_word(bignum->bignum_, nWord);
+      BN_lshift(bignum->bignum_, bignum->bignum_, 8*(nSize-3));
   }
-  BN_set_negative(&bignum->bignum_, fNegative);
+  BN_set_negative(bignum->bignum_, fNegative);
 
   info.GetReturnValue().Set(info.This());
 }
