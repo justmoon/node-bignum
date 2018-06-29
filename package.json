@@ -33,6 +33,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
+    "rebuild": "node-pre-gyp rebuild",
     "test": "standard && tap --timeout 120 test/*.js"
   },
   "binary": {
