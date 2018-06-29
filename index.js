@@ -1,7 +1,5 @@
-var binary = require('node-pre-gyp')
-var path = require('path')
-var binPath = binary.find(path.resolve(path.join(__dirname, 'package.json')))
-var bin = require(binPath)
+var bin = require('bindings')('bignum')
+var Buffer = require('safe-buffer').Buffer
 var BigNum = bin.BigNum
 
 module.exports = BigNum
@@ -28,7 +26,7 @@ BigNum.conditionArgs = function (num, base) {
         base: 2
       }
     }
-  } else if (num.match(/e\-/)) { // negative exponent
+  } else if (num.match(/e-/)) { // negative exponent
     return {
       num: Math.floor(Number(num)).toString(),
       base: base || 10
@@ -257,9 +255,7 @@ BigNum.prototype.rand = function (to) {
       return this.brand0()
     }
   } else {
-    var x = BigNum.isBigNum(to)
-      ? to.sub(this)
-     : BigNum(to).sub(this)
+    var x = BigNum.isBigNum(to) ? to.sub(this) : BigNum(to).sub(this)
     return x.brand0().add(this)
   }
 }
@@ -342,7 +338,7 @@ BigNum.prototype.toBuffer = function (opts) {
     var len = buf.length === 1 && buf[0] === 0 ? 0 : buf.length
     if (buf[0] & 0x80) len++
 
-    var ret = new Buffer(4 + len)
+    var ret = Buffer.alloc(4 + len)
     if (len > 0) buf.copy(ret, 4 + (buf[0] & 0x80 ? 1 : 0))
     if (buf[0] & 0x80) ret[4] = 0
 
@@ -377,7 +373,7 @@ BigNum.prototype.toBuffer = function (opts) {
   var size = opts.size === 'auto' ? Math.ceil(hex.length / 2) : (opts.size || 1)
 
   len = Math.ceil(hex.length / (2 * size)) * size
-  buf = new Buffer(len)
+  buf = Buffer.alloc(len)
 
   // zero-pad the hex string so the chunks are all `size` long
   while (hex.length < 2 * len) hex = '0' + hex

@@ -22,19 +22,23 @@
     "url": "http://www.justmoon.net"
   },
   "dependencies": {
-    "nan": "^2.10.0",
-    "node-pre-gyp": "~0.10.2"
+    "bindings": "~1.3.0",
+    "nan": "~2.10.0",
+    "prebuild-install": "~4.0.0",
+    "safe-buffer": "~5.1.2"
   },
   "devDependencies": {
-    "aws-sdk": "~2.4.0",
+    "prebuild": "~7.6.0",
+    "prebuild-ci": "~2.2.3",
     "put": "~0.0.5",
-    "standard": "~7.1.2",
+    "standard": "~11.0.1",
     "tap": "~12.0.1"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
-    "rebuild": "node-pre-gyp rebuild",
-    "test": "standard && tap --timeout 120 test/*.js"
+    "install": "prebuild-install || node-gyp rebuild",
+    "rebuild": "prebuild --compile",
+    "prebuild": "prebuild --all --strip --verbose",
+    "test": "standard && tap --timeout 120 test/*.js && prebuild-ci"
   },
   "binary": {
     "host": "https://rvagg-node.s3-us-west-2.amazonaws.com",

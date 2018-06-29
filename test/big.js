@@ -1,3 +1,4 @@
+var Buffer = require('safe-buffer').Buffer
 var BigNum = require('../')
 var test = require('tap').test
 
@@ -511,7 +512,7 @@ test('endian', { timeout: 120000 }, function (t) {
   t.deepEqual(b.toBuffer({ endian: 'big', size: 'auto' }).toString('hex'), '0102030405')
   t.deepEqual(b.toBuffer({ endian: 'little', size: 'auto' }).toString('hex'), '0504030201')
 
-  var c = new Buffer('000102030405', 'hex')
+  var c = Buffer.from('000102030405', 'hex')
   t.deepEqual(BigNum.fromBuffer(c, { endian: 'big', size: 'auto' }).toString(16), '0102030405')
   t.deepEqual(BigNum.fromBuffer(c, { endian: 'little', size: 'auto' }).toString(16), '050403020100')
 
@@ -520,7 +521,7 @@ test('endian', { timeout: 120000 }, function (t) {
 
 test('bitlength', { timeout: 120000 }, function (t) {
   var bl = BigNum(
-  '433593290010590489671135819286259593426549306666324008679782084292' +
+    '433593290010590489671135819286259593426549306666324008679782084292' +
     '2446494189019075159822930571858728009485237489829138626896756141' +
     '873895833763224917704497568647701157104426'
   ).bitLength()
