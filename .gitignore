@@ -1,6 +1,6 @@
 # Files
 .lock-wscript
-pre-gyp-publish.sh
+package-lock.json
 
 # Filetypes
 .*.swp

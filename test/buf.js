@@ -1,9 +1,10 @@
 var BigNum = require('../')
 var put = require('put')
 var test = require('tap').test
+var Buffer = require('safe-buffer').Buffer
 
 test('bufBe', function (t) {
-  var buf1 = new Buffer([1, 2, 3, 4])
+  var buf1 = Buffer.from([1, 2, 3, 4])
   var num = BigNum.fromBuffer(buf1, { size: 4 }).toNumber()
   t.deepEqual(
     num,
@@ -22,7 +23,7 @@ test('bufBe', function (t) {
 })
 
 test('bufLe', function (t) {
-  var buf1 = new Buffer([1, 2, 3, 4])
+  var buf1 = Buffer.from([1, 2, 3, 4])
   var num = BigNum
     .fromBuffer(buf1, { size: 4, endian: 'little' })
     .toNumber()
@@ -36,8 +37,8 @@ test('bufLe', function (t) {
 })
 
 test('bufBe_le', function (t) {
-  var bufBe = new Buffer([1, 2, 3, 4, 5, 6, 7, 8])
-  var bufLe = new Buffer([4, 3, 2, 1, 8, 7, 6, 5])
+  var bufBe = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8])
+  var bufLe = Buffer.from([4, 3, 2, 1, 8, 7, 6, 5])
 
   var numBe = BigNum
     .fromBuffer(bufBe, { size: 4, endian: 'big' })
@@ -53,11 +54,11 @@ test('bufBe_le', function (t) {
 })
 
 test('buf_high_bits', function (t) {
-  var bufBe = new Buffer([
+  var bufBe = Buffer.from([
     201, 202, 203, 204,
     205, 206, 207, 208
   ])
-  var bufLe = new Buffer([
+  var bufLe = Buffer.from([
     204, 203, 202, 201,
     208, 207, 206, 205
   ])
@@ -104,7 +105,7 @@ test('buf_to_from', function (t) {
 })
 
 test('toBuf', function (t) {
-  var buf = new Buffer([ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f ])
+  var buf = Buffer.from([ 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f ])
   var b = BigNum(
     0x0a * 256 * 256 * 256 * 256 * 256 +
     0x0b * 256 * 256 * 256 * 256 +
@@ -169,15 +170,15 @@ test('toMpint', function (t) {
   // http://tools.ietf.org/html/rfc4251#page-10
 
   var refs = {
-    '0': new Buffer([ 0x00, 0x00, 0x00, 0x00 ]),
-    '9a378f9b2e332a7': new Buffer([
+    '0': Buffer.from([ 0x00, 0x00, 0x00, 0x00 ]),
+    '9a378f9b2e332a7': Buffer.from([
       0x00, 0x00, 0x00, 0x08,
       0x09, 0xa3, 0x78, 0xf9,
       0xb2, 0xe3, 0x32, 0xa7
     ]),
-    '80': new Buffer([ 0x00, 0x00, 0x00, 0x02, 0x00, 0x80 ]),
-    '-1234': new Buffer([ 0x00, 0x00, 0x00, 0x02, 0xed, 0xcc ]),
-    '-deadbeef': new Buffer([ 0x00, 0x00, 0x00, 0x05, 0xff, 0x21, 0x52, 0x41, 0x11 ])
+    '80': Buffer.from([ 0x00, 0x00, 0x00, 0x02, 0x00, 0x80 ]),
+    '-1234': Buffer.from([ 0x00, 0x00, 0x00, 0x02, 0xed, 0xcc ]),
+    '-deadbeef': Buffer.from([ 0x00, 0x00, 0x00, 0x05, 0xff, 0x21, 0x52, 0x41, 0x11 ])
   }
 
   Object.keys(refs).forEach(function (key) {
