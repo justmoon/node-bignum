@@ -48,26 +48,29 @@ using namespace std;
     Nan::ThrowTypeError("Argument " #I " must be an int64");    \
     return;                                     \
   }                                                           \
-  int64_t VAR = info[I]->ToInteger()->Value();
+  int64_t VAR = info[I]->ToInteger(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
 #define REQ_UINT64_ARG(I, VAR)                                \
   if (info.Length() <= (I) || !info[I]->IsNumber()) {         \
     Nan::ThrowTypeError("Argument " #I " must be a uint64");    \
     return;                                     \
   }                                                           \
-  uint64_t VAR = info[I]->ToInteger()->Value();
+  uint64_t VAR = info[I]->ToInteger(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
 #define REQ_BOOL_ARG(I, VAR)                                  \
   if (info.Length() <= (I) || !info[I]->IsBoolean()) {        \
     Nan::ThrowTypeError("Argument " #I " must be a boolean");   \
     return;                                     \
   }                                                           \
-  bool VAR = info[I]->ToBoolean()->Value();
+  bool VAR = info[I]->ToBoolean(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
 
 #define WRAP_RESULT(RES, VAR)                                           \
   Local<Value> arg[1] = { Nan::New<External>(static_cast<BigNum*>(RES)) };  \
-  Local<Object> VAR = Nan::NewInstance(Nan::New<FunctionTemplate>(constructor_template)->GetFunction(),      \
-    1, arg).ToLocalChecked();
+  Local<Object> VAR = Nan::NewInstance(  \
+    Nan::New<FunctionTemplate>(constructor_template)->GetFunction(info.GetIsolate()->GetCurrentContext()).ToLocalChecked(), \
+    1, \
+    arg \
+  ).ToLocalChecked();
 
 class AutoBN_CTX
 {
@@ -288,7 +291,8 @@ void BigNum::Initialize(v8::Local<v8::Object> target) {
   Nan::SetPrototypeMethod(tmpl, "setCompact", Bsetcompact);
   Nan::SetPrototypeMethod(tmpl, "isbitset", IsBitSet);
 
-  target->Set(Nan::New("BigNum").ToLocalChecked(), tmpl->GetFunction());
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
+  target->Set(Nan::New("BigNum").ToLocalChecked(), tmpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 }
 
 BigNum::BigNum(const Nan::Utf8String& str, uint64_t base) : Nan::ObjectWrap (),
@@ -382,7 +386,7 @@ NAN_METHOD(BigNum::New)
 
     Nan::TryCatch tryCatch;
     Nan::MaybeLocal<Object> newInstMaybeLocal = Nan::NewInstance(
-        Nan::New<FunctionTemplate>(constructor_template)->GetFunction(), len, newArgs);
+        Nan::New<FunctionTemplate>(constructor_template)->GetFunction(info.GetIsolate()->GetCurrentContext()).ToLocalChecked(), len, newArgs);
     if (tryCatch.HasCaught()) {
         tryCatch.ReThrow();
         return;
@@ -397,6 +401,8 @@ NAN_METHOD(BigNum::New)
   BigNum *bignum;
   uint64_t base;
 
+  Local<Context> currentContext = info.GetIsolate()->GetCurrentContext();
+
   if (info[0]->IsExternal()) {
     bignum = static_cast<BigNum*>(External::Cast(*(info[0]))->Value());
   } else {
@@ -406,17 +412,18 @@ NAN_METHOD(BigNum::New)
     for (int i = 0; i < len; i++) {
       newArgs[i] = info[i];
     }
-    Local<Value> obj = Nan::New<Function>(js_conditioner)->
-      Call(ctx, info.Length(), newArgs);
+    Local<Value> obj;
+    const int ok = Nan::New<Function>(js_conditioner)->
+      Call(currentContext, ctx, info.Length(), newArgs).ToLocal(&obj);
     delete[] newArgs;
 
-    if (!*obj) {
+    if (!ok) {
       Nan::ThrowError("Invalid type passed to bignum constructor");
       return;
     }
 
-    Nan::Utf8String str(obj->ToObject()->Get(Nan::New("num").ToLocalChecked())->ToString());
-    base = Nan::To<int64_t>(obj->ToObject()->Get(Nan::New("base").ToLocalChecked())).FromJust();
+    Nan::Utf8String str(obj->ToObject(currentContext).ToLocalChecked()->Get(Nan::New("num").ToLocalChecked())->ToString(currentContext).ToLocalChecked());
+    base = Nan::To<int64_t>(obj->ToObject(currentContext).ToLocalChecked()->Get(Nan::New("base").ToLocalChecked())).FromJust();
 
     bignum = new BigNum(str, base);
   }
@@ -459,7 +466,7 @@ NAN_METHOD(BigNum::Badd)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
 
   BN_add(res->bignum_, bignum->bignum_, bn->bignum_);
@@ -473,7 +480,7 @@ NAN_METHOD(BigNum::Bsub)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_sub(res->bignum_, bignum->bignum_, bn->bignum_);
 
@@ -487,7 +494,7 @@ NAN_METHOD(BigNum::Bmul)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_mul(res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
@@ -501,7 +508,7 @@ NAN_METHOD(BigNum::Bdiv)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_div(res->bignum_, NULL, bignum->bignum_, bi->bignum_, ctx);
 
@@ -639,7 +646,7 @@ NAN_METHOD(BigNum::Bmod)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_div(NULL, res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
@@ -672,8 +679,8 @@ NAN_METHOD(BigNum::Bpowm)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn1 = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
-  BigNum *bn2 = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject());
+  BigNum *bn1 = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
+  BigNum *bn2 = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_mod_exp(res->bignum_, bignum->bignum_, bn1->bignum_, bn2->bignum_, ctx);
 
@@ -688,7 +695,7 @@ NAN_METHOD(BigNum::Upowm)
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
   REQ_UINT64_ARG(0, x);
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *exp = new BigNum(x);
 
   BigNum *res = new BigNum();
@@ -765,7 +772,7 @@ NAN_METHOD(BigNum::Bcompare)
 {
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
 
   info.GetReturnValue().Set(Nan::New<Number>(BN_cmp(bignum->bignum_, bn->bignum_)));
 }
@@ -895,7 +902,7 @@ BigNum::Bop(Nan::NAN_METHOD_ARGS_TYPE info, int op)
   Nan::EscapableHandleScope scope;
 
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
 
   bool bignumNegative = BN_is_negative(bignum->bignum_);
   bool bnNegative = BN_is_negative(bn->bignum_);
@@ -1024,7 +1031,7 @@ NAN_METHOD(BigNum::Binvertm)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
   BN_mod_inverse(res->bignum_, bignum->bignum_, bn->bignum_, ctx);
 
@@ -1058,7 +1065,7 @@ NAN_METHOD(BigNum::Bgcd)
   AutoBN_CTX ctx;
   BigNum *bignum = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bi = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
 
   BN_gcd(res->bignum_, bignum->bignum_, bi->bignum_, ctx);
@@ -1072,7 +1079,7 @@ NAN_METHOD(BigNum::Bjacobi)
   AutoBN_CTX ctx;
   BigNum *bn_a = Nan::ObjectWrap::Unwrap<BigNum>(info.This());
 
-  BigNum *bn_n = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject());
+  BigNum *bn_n = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   int res = 0;
 
   if (BN_jacobi_priv(bn_a->bignum_, bn_n->bignum_, &res, ctx) == -1) {
