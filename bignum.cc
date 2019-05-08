@@ -412,11 +412,12 @@ NAN_METHOD(BigNum::New)
     for (int i = 0; i < len; i++) {
       newArgs[i] = info[i];
     }
-    Local<Value> obj = Nan::New<Function>(js_conditioner)->
-      Call(currentContext, ctx, info.Length(), newArgs).ToLocalChecked();
+    Local<Value> obj;
+    const int ok = Nan::New<Function>(js_conditioner)->
+      Call(currentContext, ctx, info.Length(), newArgs).ToLocal(&obj);
     delete[] newArgs;
 
-    if (!*obj) {
+    if (!ok) {
       Nan::ThrowError("Invalid type passed to bignum constructor");
       return;
     }
