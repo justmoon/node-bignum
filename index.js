@@ -74,7 +74,7 @@ BigNum.prototype.toNumber = function () {
   return parseInt(this.toString(), 10)
 }
 
-;[ 'add', 'sub', 'mul', 'div', 'mod' ].forEach(function (op) {
+;['add', 'sub', 'mul', 'div', 'mod'].forEach(function (op) {
   BigNum.prototype[op] = function (num) {
     var x
     if (BigNum.isBigNum(num)) {

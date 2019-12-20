@@ -241,7 +241,7 @@ test('cmp', { timeout: 120000 }, function (t) {
     var bi = BigNum(i)
 
     for (var j = -10; j <= 10; j++) {
-      [ j, BigNum(j) ].forEach(function (jj) {
+      [j, BigNum(j)].forEach(function (jj) {
         t.deepEqual(bi.lt(jj), i < j)
         t.deepEqual(bi.le(jj), i <= j)
         t.deepEqual(bi.eq(jj), i === j)
@@ -256,8 +256,8 @@ test('cmp', { timeout: 120000 }, function (t) {
 })
 
 test('powm', { timeout: 120000 }, function (t) {
-  var twos = [ 2, '2', BigNum(2), BigNum('2') ]
-  var tens = [ 100000, '100000', BigNum(100000), BigNum(100000) ]
+  var twos = [2, '2', BigNum(2), BigNum('2')]
+  var tens = [100000, '100000', BigNum(100000), BigNum(100000)]
   twos.forEach(function (two) {
     tens.forEach(function (ten) {
       t.deepEqual(
@@ -278,7 +278,7 @@ test('powm', { timeout: 120000 }, function (t) {
 })
 
 test('pow', { timeout: 120000 }, function (t) {
-  [ 2, '2', BigNum(2), BigNum('2') ].forEach(function (two) {
+  [2, '2', BigNum(2), BigNum('2')].forEach(function (two) {
     t.deepEqual(
       BigNum('111111111').pow(two).toString(),
       '12345678987654321'
@@ -436,7 +436,7 @@ test('primes', { timeout: 120000 }, function (t) {
     '5628290459057877291809182450381238927697314822133923421169378062922140081498734424133112032854812293'
   ]
 
-  ;[ uniques, wagstaff, big ].forEach(function (xs) {
+  ;[uniques, wagstaff, big].forEach(function (xs) {
     xs.forEach(function (x) {
       var p = BigNum(x).probPrime()
       t.ok(p === true || p === 'maybe')
