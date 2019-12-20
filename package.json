@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "bindings": "~1.3.0",
-    "nan": "~2.13.2",
+    "nan": "^2.14.0",
     "prebuild-install": "~4.0.0",
     "safe-buffer": "~5.1.2"
   },

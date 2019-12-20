@@ -55,14 +55,14 @@ using namespace std;
     Nan::ThrowTypeError("Argument " #I " must be a uint64");    \
     return;                                     \
   }                                                           \
-  uint64_t VAR = info[I]->ToInteger(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
+  uint64_t VAR = Nan::To<v8::Integer>(info[I]).ToLocalChecked()->Value();
 
 #define REQ_BOOL_ARG(I, VAR)                                  \
   if (info.Length() <= (I) || !info[I]->IsBoolean()) {        \
     Nan::ThrowTypeError("Argument " #I " must be a boolean");   \
     return;                                     \
   }                                                           \
-  bool VAR = info[I]->ToBoolean(info.GetIsolate()->GetCurrentContext()).ToLocalChecked()->Value();
+  bool VAR = Nan::To<v8::Boolean>(info[I]).ToLocalChecked()->Value();
 
 #define WRAP_RESULT(RES, VAR)                                           \
   Local<Value> arg[1] = { Nan::New<External>(static_cast<BigNum*>(RES)) };  \
@@ -292,7 +292,7 @@ void BigNum::Initialize(v8::Local<v8::Object> target) {
   Nan::SetPrototypeMethod(tmpl, "isbitset", IsBitSet);
 
   v8::Isolate *isolate = v8::Isolate::GetCurrent();
-  target->Set(Nan::New("BigNum").ToLocalChecked(), tmpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+  Nan::Set(target, Nan::New("BigNum").ToLocalChecked(), tmpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
 }
 
 BigNum::BigNum(const Nan::Utf8String& str, uint64_t base) : Nan::ObjectWrap (),
@@ -422,8 +422,8 @@ NAN_METHOD(BigNum::New)
       return;
     }
 
-    Nan::Utf8String str(obj->ToObject(currentContext).ToLocalChecked()->Get(Nan::New("num").ToLocalChecked())->ToString(currentContext).ToLocalChecked());
-    base = Nan::To<int64_t>(obj->ToObject(currentContext).ToLocalChecked()->Get(Nan::New("base").ToLocalChecked())).FromJust();
+    Nan::Utf8String str(Nan::Get(obj->ToObject(currentContext).ToLocalChecked(), Nan::New("num").ToLocalChecked()).ToLocalChecked()->ToString(currentContext).ToLocalChecked());
+    base = Nan::To<int64_t>(Nan::Get(obj->ToObject(currentContext).ToLocalChecked(), Nan::New("base").ToLocalChecked()).ToLocalChecked()).FromJust();
 
     bignum = new BigNum(str, base);
   }
