@@ -14,6 +14,11 @@ it uses the builtin bignum functionality provided by OpenSSL. The
 advantage is that OpenSSL is already part of Node.js, so this
 library does not add any external dependency whatsoever.
 
+BigInt
+======
+
+JavaScript now has a BigInt object. If you are using Node 10.4 or newer, you should use or migrate to [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
+
 differences
 ===========
 
