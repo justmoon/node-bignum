@@ -24,27 +24,16 @@
   "dependencies": {
     "bindings": "^1.5.0",
     "nan": "^2.14.0",
-    "prebuild-install": "^5.3.3",
     "safe-buffer": "^5.2.0"
   },
   "devDependencies": {
-    "prebuild": "^9.1.1",
-    "prebuild-ci": "^3.1.0",
     "put": "0.0.6",
     "standard": "^14.3.1",
     "tap": "^14.10.5"
   },
   "scripts": {
-    "install": "prebuild-install || node-gyp rebuild",
-    "rebuild": "prebuild --compile",
-    "prebuild": "prebuild --all --strip --verbose",
-    "test": "standard && tap --timeout 120 test/*.js && prebuild-ci"
-  },
-  "binary": {
-    "host": "https://rvagg-node.s3-us-west-2.amazonaws.com",
-    "module_name": "bignum",
-    "module_path": "binding/",
-    "remote_path": "./{name}/v{version}"
+    "install": "node-gyp rebuild",
+    "test": "standard && tap --timeout 120 test/*.js"
   },
   "license": "MIT",
   "contributors": [
