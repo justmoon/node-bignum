@@ -682,6 +682,9 @@ NAN_METHOD(BigNum::Bpowm)
   BigNum *bn1 = Nan::ObjectWrap::Unwrap<BigNum>(info[0]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *bn2 = Nan::ObjectWrap::Unwrap<BigNum>(info[1]->ToObject(info.GetIsolate()->GetCurrentContext()).ToLocalChecked());
   BigNum *res = new BigNum();
+  // Constant-time flag only supported for odd modulus
+  if (BN_is_odd(bn2->bignum_))
+    BN_set_flags(bn1->bignum_, BN_FLG_CONSTTIME);
   BN_mod_exp(res->bignum_, bignum->bignum_, bn1->bignum_, bn2->bignum_, ctx);
 
   WRAP_RESULT(res, result);
@@ -699,6 +702,9 @@ NAN_METHOD(BigNum::Upowm)
   BigNum *exp = new BigNum(x);
 
   BigNum *res = new BigNum();
+  // Constant-time flag only supported for odd modulus
+  if (BN_is_odd(bn->bignum_))
+    BN_set_flags(exp->bignum_, BN_FLG_CONSTTIME);
   BN_mod_exp(res->bignum_, bignum->bignum_, exp->bignum_, bn->bignum_, ctx);
 
   WRAP_RESULT(res, result);
